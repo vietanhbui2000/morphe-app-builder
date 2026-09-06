@@ -613,8 +613,62 @@ def write_download_summary(
     return 0 if download_targets else 1
 
 
-def write_patch_summary(results: List[BuildResult]) -> int:
+def _format_patch_recipe(
+    r: BuildResult,
+    general: GeneralConfig,
+    apps_map: Optional[Dict[str, AppConfig]] = None,
+) -> str:
+    """Format patch recipe string, omitting CLI if using default CLI."""
+    cli_source = r.cli_source
+    cli_tag = r.cli_tag or "latest"
+    patches_source = r.patches_source
+    patches_tag = r.patches_tag or "latest"
+
+    is_default_cli = False
+    if apps_map and r.name in apps_map:
+        app = apps_map[r.name]
+        if not cli_source:
+            cli_source = app.cli_source
+        if not patches_source:
+            patches_source = app.patches_source
+        is_default_cli = (
+            app.cli_source == general.default_cli_source
+            and app.cli_version == general.default_cli_version
+        )
+    elif general:
+        if not cli_source:
+            cli_source = general.default_cli_source
+        if not patches_source:
+            patches_source = general.default_patches_source
+        is_default_cli = (cli_source == general.default_cli_source)
+
+    if is_default_cli:
+        return f"{patches_source} {patches_tag}"
+    return f"{cli_source} {cli_tag} + {patches_source} {patches_tag}"
+
+
+def write_patch_summary(
+    results: List[BuildResult],
+    general: Optional[GeneralConfig] = None,
+    apps_map: Optional[Dict[str, AppConfig]] = None,
+) -> int:
     """Generate console summary and RELEASE.md."""
+    if general is None:
+        try:
+            general, apps = load_config(ROOT_DIR / "config.toml")
+            if apps_map is None:
+                apps_map = {a.name: a for a in apps}
+        except Exception:
+            general = GeneralConfig()
+            if apps_map is None:
+                apps_map = {}
+    elif apps_map is None:
+        try:
+            _, apps = load_config(ROOT_DIR / "config.toml")
+            apps_map = {a.name: a for a in apps}
+        except Exception:
+            apps_map = {}
+
     print("=" * 70)
     print(f"{Colors.BOLD}PATCH SUMMARY{Colors.RESET}")
     print("=" * 70)
@@ -633,9 +687,7 @@ def write_patch_summary(results: List[BuildResult]) -> int:
         v_raw = first_r.version
         version = _format_version(v_raw)
 
-        cli_tag = first_r.cli_tag or "latest"
-        patches_tag = first_r.patches_tag or "latest"
-        recipe_str = f"{first_r.cli_source} {cli_tag} + {first_r.patches_source} {patches_tag}"
+        recipe_str = _format_patch_recipe(first_r, general, apps_map)
 
         if all_success:
             icon = f"{Colors.GREEN}[✓]{Colors.RESET}"
@@ -698,18 +750,20 @@ def write_patch_summary(results: List[BuildResult]) -> int:
                 target_links.append(label)
 
         targets_str = "; ".join(target_links)
-        patches_tag = first_r.patches_tag or "latest"
-        cli_tag = first_r.cli_tag or "latest"
+        recipe_str = _format_patch_recipe(first_r, general, apps_map)
 
         # App line format: AppName: [vX.Y.Z](link) [`patches_source patches_tag`]  
-        new_app_lines[name] = f"{name}: {targets_str} [`{first_r.patches_source} {patches_tag}`]  "
+        # (or [`cli_source cli_tag + patches_source patches_tag`] if not using default cli)
+        new_app_lines[name] = f"{name}: {targets_str} [`{recipe_str}`]  "
 
         # Track sources for bottom section
+        cli_tag = first_r.cli_tag or "latest"
         cli_url = f"https://github.com/{first_r.cli_source}/releases/tag/{cli_tag}"
         new_source_lines[first_r.cli_source] = f"{first_r.cli_source}: [{cli_tag}]({cli_url})  "
 
-        pat_url = f"https://github.com/{first_r.patches_source}/releases/tag/{patches_tag}"
-        new_source_lines[first_r.patches_source] = f"{first_r.patches_source}: [{patches_tag}]({pat_url})  "
+        patches_tag = first_r.patches_tag or "latest"
+        patches_url = f"https://github.com/{first_r.patches_source}/releases/tag/{patches_tag}"
+        new_source_lines[first_r.patches_source] = f"{first_r.patches_source}: [{patches_tag}]({patches_url})  "
 
     existing_apps: Dict[str, str] = {}
     existing_sources: Dict[str, str] = {}
@@ -951,7 +1005,7 @@ def main() -> int:
         group_end()
 
     all_results = failed_downloads + results
-    return write_patch_summary(all_results)
+    return write_patch_summary(all_results, general=general, apps_map=apps_map)
 
 
 if __name__ == "__main__":
