@@ -58,6 +58,11 @@ def _extract_source_tag_from_release_md(source: str, release_text: str) -> str:
     """Extract tag for a CLI or patches repository from previous RELEASE.md."""
     if not release_text:
         return ""
+    if "---" in release_text:
+        _, sources_part = release_text.split("---", 1)
+        match = re.search(rf"^{re.escape(source)}:\s*\[([^\]]+)\]", sources_part, re.MULTILINE)
+        if match:
+            return match.group(1).strip()
     pattern = rf"{re.escape(source)}[\s:]+\[?([a-zA-Z0-9._-]+)\]?"
     match = re.search(pattern, release_text)
     return match.group(1) if match else ""
@@ -133,11 +138,15 @@ def check_updates(config_path: Path) -> int:
             apps_to_build.append(app.name)
             reasons = []
             if cli_up:
-                reasons.append(f"{app.cli_source} {cli_lat or cli_cur}")
+                reasons.append(f"{app.cli_source} {cli_lat or cli_cur}".strip())
             if pat_up:
-                reasons.append(f"{app.patches_source} {pat_lat or pat_cur}")
+                reasons.append(f"{app.patches_source} {pat_lat or pat_cur}".strip())
             if not reasons:
-                reasons.append(f"{app.cli_source} {cli_lat or cli_cur} + {app.patches_source} {pat_lat or pat_cur}")
+                components = [
+                    f"{app.cli_source} {cli_lat or cli_cur}".strip(),
+                    f"{app.patches_source} {pat_lat or pat_cur}".strip(),
+                ]
+                reasons = [c for c in components if c]
             app_summary_rows.append((app.name, " + ".join(reasons)))
 
     print("=" * 70)
