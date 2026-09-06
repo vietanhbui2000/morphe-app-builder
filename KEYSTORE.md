@@ -52,6 +52,12 @@ keytool -genkeypair \
   -validity 10000
 ```
 
+When automatically generated at build time:
+1. **GitHub Release**: The keystore is archived into `output/keystore.zip` and attached alongside the release APKs so you can download it directly from the release page.
+2. **Workflow Artifacts**: It is uploaded as a distinct workflow artifact (`generated-keystores-<RELEASE_TAG>`).
+
+You can extract the downloaded `keystore.zip`, place `keystore.keystore` at your repository root, and commit it to maintain seamless update compatibility across future builds.
+
 ---
 
 ## 4. Using a Custom Keystore

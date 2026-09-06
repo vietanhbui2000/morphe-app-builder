@@ -422,7 +422,12 @@ def patch_single_target(
     # 1. Ensure Keystore & Merge if Bundle
     stock_apk_path: Path
     keystore_path = ROOT_DIR / general.keystore
-    ensure_keystore(keystore_path, general.keystore_alias, general.keystore_password)
+    ensure_keystore(
+        keystore_path=keystore_path,
+        keystore_alias=general.keystore_alias,
+        keystore_password=general.keystore_password,
+        output_dir=OUTPUT_DIR,
+    )
 
     if downloaded_apk_path.suffix in (".apkm", ".xapk"):
         merged_apk_path = downloaded_apk_path.with_suffix(".merged.apk")
@@ -728,6 +733,12 @@ def write_patch_summary(
                 err = first_result.error_message or "Patching failed"
                 print(f"{icon} {name}: {version} [{recipe_str}] > FAILED {{{err}}}")
 
+    keystore_name = Path(general.keystore).name if general else "keystore.keystore"
+    output_keystore_path = OUTPUT_DIR / keystore_name
+    if output_keystore_path.is_file():
+        icon = f"{Colors.GREEN}[✓]{Colors.RESET}"
+        print(f"{icon} Keystore: {keystore_name} > Newly generated & archived in output/ for release & artifact export")
+
     # Write RELEASE.md for GitHub Releases
     release_md_path = ROOT_DIR / "RELEASE.md"
     repo = _get_github_repo()
@@ -988,6 +999,25 @@ def main() -> int:
 
     log_stage("Starting Patching & Signing Phase")
     results: List[BuildResult] = []
+
+    keystore_path = ROOT_DIR / general.keystore
+    if not args.dry_run:
+        keystore_existed = keystore_path.is_file() and keystore_path.stat().st_size > 0
+        if keystore_existed:
+            stale_out_keystore = OUTPUT_DIR / keystore_path.name
+            if stale_out_keystore.is_file():
+                stale_out_keystore.unlink(missing_ok=True)
+            stale_archive = OUTPUT_DIR / f"{keystore_path.stem}.zip"
+            if stale_archive.is_file():
+                stale_archive.unlink(missing_ok=True)
+        ensure_keystore(
+            keystore_path=keystore_path,
+            keystore_alias=general.keystore_alias,
+            keystore_password=general.keystore_password,
+            output_dir=OUTPUT_DIR,
+        )
+    elif not keystore_path.is_file():
+        log_info(f"[DRY-RUN] Keystore not found at {keystore_path.name}. Would generate with keytool and copy to output/", indent=1)
 
     # Group targets by app maintaining order
     targets_by_app: Dict[str, List[Dict[str, Any]]] = {}

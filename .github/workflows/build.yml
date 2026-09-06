@@ -87,12 +87,23 @@ jobs:
           RELEASE_TAG: ${{ steps.tag_gen.outputs.RELEASE_TAG }}
         run: python build.py --patch-only
 
-      - name: Upload Build Artifacts
+      - name: Upload Patched APKs
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: patched-apks-${{ steps.tag_gen.outputs.RELEASE_TAG }}
           path: output/*.apk
+          if-no-files-found: ignore
+
+      - name: Upload Generated Keystores
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: generated-keystores-${{ steps.tag_gen.outputs.RELEASE_TAG }}
+          path: |
+            output/*.keystore
+            output/*.jks
+            output/*.p12
           if-no-files-found: ignore
 
       - name: Capture Release Notes
@@ -111,7 +122,11 @@ jobs:
           NOTES: "${{ steps.release_notes.outputs.NOTES }}"
         run: |
           if [ -d "output" ] && [ "$(ls -A output/*.apk 2>/dev/null)" ]; then
-            gh release create "$TAG" output/*.apk \
+            RELEASE_FILES=(output/*.apk)
+            if [ -n "$(ls -A output/*.zip 2>/dev/null)" ]; then
+              RELEASE_FILES+=(output/*.zip)
+            fi
+            gh release create "$TAG" "${RELEASE_FILES[@]}" \
               --title "$TITLE" \
               --notes "$NOTES"
           else

@@ -11,7 +11,7 @@ from typing import Optional
 
 from core.github import github_client
 from core.http import http_client
-from core.logger import log_info, log_error
+from core.logger import log_info, log_success, log_error
 
 BIN_DIR = Path(__file__).resolve().parent.parent / "bin"
 APK_EDITOR = BIN_DIR / "APKEditor.jar"
@@ -30,7 +30,8 @@ ARCH_ALIAS_MAP = {
 def ensure_keystore(
     keystore_path: Path,
     keystore_alias: str = "vietanhbui2000",
-    keystore_password: str = "1234567890"
+    keystore_password: str = "1234567890",
+    output_dir: Optional[Path] = None
 ) -> bool:
     """Ensure a valid keystore exists; generate a default one using keytool if missing."""
     if keystore_path.is_file() and keystore_path.stat().st_size > 0:
@@ -55,6 +56,16 @@ def ensure_keystore(
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, check=False)
         if result.returncode == 0 and keystore_path.is_file() and keystore_path.stat().st_size > 0:
+            log_success(f"Generated new keystore at {keystore_path.name}", indent=2)
+            if output_dir:
+                out_dir = Path(output_dir)
+                out_dir.mkdir(parents=True, exist_ok=True)
+                out_keystore = out_dir / keystore_path.name
+                shutil.copy2(keystore_path, out_keystore)
+                archive_path = out_dir / f"{keystore_path.stem}.zip"
+                with zipfile.ZipFile(archive_path, "w", zipfile.ZIP_DEFLATED) as zf:
+                    zf.write(keystore_path, arcname=keystore_path.name)
+                log_success(f"Copied generated keystore to {out_keystore} and archived to {archive_path.name}", indent=2)
             return True
         log_error(f"Failed to generate keystore via keytool: {result.stderr or result.stdout}", indent=2)
     except Exception as e:
@@ -221,15 +232,16 @@ def sign_apk(
         log_error(f"apksigner.jar not found at {APK_SIGNER}", indent=2)
         return False
 
+    output_apk_path = output_path or apk_path
+
     if not ensure_keystore(
         keystore_path=keystore_path,
         keystore_alias=keystore_alias,
-        keystore_password=keystore_password
+        keystore_password=keystore_password,
+        output_dir=output_apk_path.parent if output_apk_path else None
     ):
         log_error(f"Keystore file not available at {keystore_path}", indent=2)
         return False
-
-    output_apk_path = output_path or apk_path
 
     cmd = [
         "java", "-jar", str(APK_SIGNER),

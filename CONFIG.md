@@ -29,7 +29,7 @@ The `[general]` table defines fallback defaults for all apps:
 
 | Key | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `keystore` | `string` | `"keystore.keystore"` | Path to the keystore file used for signing release APKs. |
+| `keystore` | `string` | `"keystore.keystore"` | Path to the keystore file used for signing release APKs. If missing, automatically generated, saved to `output/`, and uploaded as a workflow artifact. |
 | `keystore_alias` | `string` | `"vietanhbui2000"` | Keystore entry alias. |
 | `keystore_password` | `string` | `"1234567890"` | Keystore and key password. |
 | `default_cli_source` | `string` | `"MorpheApp/morphe-cli"` | Default GitHub repository for Morphe CLI. |
