@@ -618,7 +618,7 @@ def _format_patch_recipe(
     general: GeneralConfig,
     apps_map: Optional[Dict[str, AppConfig]] = None,
 ) -> str:
-    """Format patch recipe string, omitting CLI if using default CLI."""
+    """Format patch recipe string for PATCH SUMMARY, omitting CLI if using default CLI."""
     cli_source = r.cli_source
     cli_tag = r.cli_tag or "latest"
     patches_source = r.patches_source
@@ -750,11 +750,14 @@ def write_patch_summary(
                 target_links.append(label)
 
         targets_str = "; ".join(target_links)
-        recipe_str = _format_patch_recipe(first_r, general, apps_map)
+        patches_source = first_r.patches_source or (
+            apps_map[name].patches_source if apps_map and name in apps_map else (
+                general.default_patches_source if general else ""
+            )
+        )
 
-        # App line format: AppName: [vX.Y.Z](link) [`patches_source patches_tag`]  
-        # (or [`cli_source cli_tag + patches_source patches_tag`] if not using default cli)
-        new_app_lines[name] = f"{name}: {targets_str} [`{recipe_str}`]  "
+        # App line format: AppName: [vX.Y.Z](link) [`patches_source`]  
+        new_app_lines[name] = f"{name}: {targets_str} [`{patches_source}`]  "
 
         # Track sources for bottom section
         cli_tag = first_r.cli_tag or "latest"
