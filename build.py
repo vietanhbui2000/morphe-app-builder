@@ -804,7 +804,7 @@ def write_patch_summary(
     if existing_apps:
         app_lines_str = "\n".join(existing_apps.values())
         sections.append(app_lines_str)
-        sections.append("ℹ Install [MicroG ↗](https://github.com/MorpheApp/MicroG-RE/) to enable Google account authentication and services for Morphe apps.")
+        sections.append("ℹ Install [MicroG ↗](https://github.com/MorpheApp/MicroG-RE/releases/latest) to enable Google account authentication and services for Morphe apps.")
 
     if existing_sources:
         source_lines_str = "\n".join(existing_sources.values())
