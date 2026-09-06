@@ -65,7 +65,7 @@ jobs:
           gh run list -L 100 --json databaseId -q '.[].databaseId' | tail -n +15 | xargs -I ID gh api "repos/$GITHUB_REPOSITORY/actions/runs/ID" -X DELETE || true
 
   build:
-    name: Trigger Build
+    name: To Build
     needs: check
     if: needs.check.outputs.should_build == '1'
     permissions:
