@@ -53,10 +53,10 @@ def ensure_keystore(
     ]
 
     try:
-        res = subprocess.run(cmd, capture_output=True, text=True, check=False)
-        if res.returncode == 0 and keystore_path.is_file() and keystore_path.stat().st_size > 0:
+        result = subprocess.run(cmd, capture_output=True, text=True, check=False)
+        if result.returncode == 0 and keystore_path.is_file() and keystore_path.stat().st_size > 0:
             return True
-        log_error(f"Failed to generate keystore via keytool: {res.stderr or res.stdout}", indent=2)
+        log_error(f"Failed to generate keystore via keytool: {result.stderr or result.stdout}", indent=2)
     except Exception as e:
         log_error(f"keytool not available to generate keystore: {e}", indent=2)
 
@@ -115,9 +115,9 @@ def merge_bundle(
     ]
 
     try:
-        res = subprocess.run(cmd, capture_output=True, text=True, check=False)
-        if res.returncode != 0:
-            log_error(f"APKEditor merge failed: {res.stderr or res.stdout}", indent=2)
+        result = subprocess.run(cmd, capture_output=True, text=True, check=False)
+        if result.returncode != 0:
+            log_error(f"APKEditor merge failed: {result.stderr or result.stdout}", indent=2)
             return False
 
         if temp_unsigned_path.is_file() and temp_unsigned_path.stat().st_size > 0:
@@ -244,10 +244,10 @@ def sign_apk(
     ]
 
     try:
-        res = subprocess.run(cmd, capture_output=True, text=True, check=False)
-        if res.returncode == 0 and output_apk_path.is_file() and output_apk_path.stat().st_size > 0:
+        result = subprocess.run(cmd, capture_output=True, text=True, check=False)
+        if result.returncode == 0 and output_apk_path.is_file() and output_apk_path.stat().st_size > 0:
             return True
-        log_error(f"apksigner signing failed: {res.stderr or res.stdout}", indent=2)
+        log_error(f"apksigner signing failed: {result.stderr or result.stdout}", indent=2)
     except Exception as e:
         log_error(f"Error executing apksigner: {e}", indent=2)
 

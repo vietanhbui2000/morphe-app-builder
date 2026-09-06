@@ -71,13 +71,13 @@ def _extract_source_tag_from_release_md(source: str, release_text: str) -> str:
 def check_updates(config_path: Path) -> int:
     """Check for upstream CLI and patches updates across all enabled apps."""
     general, apps = load_config(config_path)
-    enabled_apps = [a for a in apps if a.enabled]
+    enabled_apps = [app for app in apps if app.enabled]
 
     log_stage("Checking for Upstream Updates")
 
     # CLI sources first, then patches sources, deduplicated and order-preserving
     all_sources = list(dict.fromkeys(
-        [a.cli_source for a in enabled_apps] + [a.patches_source for a in enabled_apps]
+        [app.cli_source for app in enabled_apps] + [app.patches_source for app in enabled_apps]
     ))
     total_checks = len(all_sources)
 
@@ -89,9 +89,9 @@ def check_updates(config_path: Path) -> int:
     source_has_update: Dict[str, bool] = {}
 
     source_target_versions: Dict[str, str] = {}
-    for a in enabled_apps:
-        source_target_versions[a.cli_source] = a.cli_version
-        source_target_versions[a.patches_source] = a.patches_version
+    for app in enabled_apps:
+        source_target_versions[app.cli_source] = app.cli_version
+        source_target_versions[app.patches_source] = app.patches_version
 
     for idx, source in enumerate(all_sources, 1):
         group_start(f"Check [{idx}/{total_checks}]: {source}")
@@ -126,25 +126,25 @@ def check_updates(config_path: Path) -> int:
     app_summary_rows: List[Tuple[str, str]] = []
 
     for app in enabled_apps:
-        cli_cur = source_current_tags.get(app.cli_source, "")
-        cli_lat = source_latest_tags.get(app.cli_source, "")
-        cli_up = source_has_update.get(app.cli_source, False)
+        cli_current_tag = source_current_tags.get(app.cli_source, "")
+        cli_latest_tag = source_latest_tags.get(app.cli_source, "")
+        cli_has_update = source_has_update.get(app.cli_source, False)
 
-        pat_cur = source_current_tags.get(app.patches_source, "")
-        pat_lat = source_latest_tags.get(app.patches_source, "")
-        pat_up = source_has_update.get(app.patches_source, False)
+        patches_current_tag = source_current_tags.get(app.patches_source, "")
+        patches_latest_tag = source_latest_tags.get(app.patches_source, "")
+        patches_has_update = source_has_update.get(app.patches_source, False)
 
-        if cli_up or pat_up or not prev_release_text:
+        if cli_has_update or patches_has_update or not prev_release_text:
             apps_to_build.append(app.name)
             reasons = []
-            if cli_up:
-                reasons.append(f"{app.cli_source} {cli_lat or cli_cur}".strip())
-            if pat_up:
-                reasons.append(f"{app.patches_source} {pat_lat or pat_cur}".strip())
+            if cli_has_update:
+                reasons.append(f"{app.cli_source} {cli_latest_tag or cli_current_tag}".strip())
+            if patches_has_update:
+                reasons.append(f"{app.patches_source} {patches_latest_tag or patches_current_tag}".strip())
             if not reasons:
                 components = [
-                    f"{app.cli_source} {cli_lat or cli_cur}".strip(),
-                    f"{app.patches_source} {pat_lat or pat_cur}".strip(),
+                    f"{app.cli_source} {cli_latest_tag or cli_current_tag}".strip(),
+                    f"{app.patches_source} {patches_latest_tag or patches_current_tag}".strip(),
                 ]
                 reasons = [c for c in components if c]
             app_summary_rows.append((app.name, " + ".join(reasons)))
@@ -156,12 +156,12 @@ def check_updates(config_path: Path) -> int:
     if app_summary_rows:
         print("> Sources")
         for source in all_sources:
-            cur = source_current_tags.get(source, "")
-            lat = source_latest_tags.get(source, "")
-            if cur and lat and cur != lat:
-                print(f"{source}: {cur} -> {lat}")
+            current_tag = source_current_tags.get(source, "")
+            latest_tag = source_latest_tags.get(source, "")
+            if current_tag and latest_tag and current_tag != latest_tag:
+                print(f"{source}: {current_tag} -> {latest_tag}")
             else:
-                print(f"{source}: {lat or cur or 'unknown'}")
+                print(f"{source}: {latest_tag or current_tag or 'unknown'}")
 
         print("> Apps")
         for name, reason_str in app_summary_rows:
@@ -250,28 +250,28 @@ def download_app_targets(
 
     if dry_run:
         if app.arch == ["all"]:
-            for a in ("universal", "arm64-v8a", "armeabi-v7a"):
-                log_info(f"[DRY-RUN] Would download {app.name} v{resolved_version} ({a})", indent=1)
+            for arch in ("universal", "arm64-v8a", "armeabi-v7a"):
+                log_info(f"[DRY-RUN] Would download {app.name} v{resolved_version} ({arch})", indent=1)
                 targets.append({
                     **target_info_base,
-                    "arch": a,
-                    "stock_apk_path": str(APKS_DIR / f"{app.id}_{resolved_version}_{a}.apk")
+                    "arch": arch,
+                    "stock_apk_path": str(APKS_DIR / f"{app.id}_{resolved_version}_{arch}.apk")
                 })
         else:
-            for a in app.arch:
-                log_info(f"[DRY-RUN] Would download {app.name} v{resolved_version} ({a})", indent=1)
+            for arch in app.arch:
+                log_info(f"[DRY-RUN] Would download {app.name} v{resolved_version} ({arch})", indent=1)
                 targets.append({
                     **target_info_base,
-                    "arch": a,
-                    "stock_apk_path": str(APKS_DIR / f"{app.id}_{resolved_version}_{a}.apk")
+                    "arch": arch,
+                    "stock_apk_path": str(APKS_DIR / f"{app.id}_{resolved_version}_{arch}.apk")
                 })
         return targets, failures
 
     sources = get_download_sources_for_app(app)
     if not sources:
-        for a in app.arch:
+        for arch in app.arch:
             failures.append(BuildResult(
-                name=app.name, id=app.id, version=resolved_version, arch=a,
+                name=app.name, id=app.id, version=resolved_version, arch=arch,
                 success=False, error_message="No download sources configured in config.toml",
                 cli_source=app.cli_source, cli_tag=cli_tag,
                 patches_source=app.patches_source, patches_tag=patches_tag
@@ -551,11 +551,11 @@ def _get_github_repo() -> str:
     return repo
 
 
-def _format_version(v: Optional[str]) -> str:
+def _format_version(raw_version: Optional[str]) -> str:
     """Format version string ensuring consistent 'v' prefix, defaulting to 'vauto'."""
-    if not v:
+    if not raw_version:
         return "vauto"
-    return v if v.startswith("v") else f"v{v}"
+    return raw_version if raw_version.startswith("v") else f"v{raw_version}"
 
 
 def write_download_summary(
@@ -568,14 +568,14 @@ def write_download_summary(
     print("=" * 70)
 
     grouped_success: Dict[str, List[Dict[str, Any]]] = {}
-    for t in download_targets:
-        name = t.get("name", "")
+    for target in download_targets:
+        name = target.get("name", "")
         if name:
-            grouped_success.setdefault(name, []).append(t)
+            grouped_success.setdefault(name, []).append(target)
 
     grouped_failed: Dict[str, List[BuildResult]] = {}
-    for r in failed_downloads:
-        grouped_failed.setdefault(r.name, []).append(r)
+    for failure in failed_downloads:
+        grouped_failed.setdefault(failure.name, []).append(failure)
 
     all_app_names = list(dict.fromkeys(list(grouped_success.keys()) + list(grouped_failed.keys())))
 
@@ -583,12 +583,12 @@ def write_download_summary(
         app_targets = grouped_success.get(name, [])
         app_failures = grouped_failed.get(name, [])
 
-        v_raw = ""
+        raw_version = ""
         if app_targets:
-            v_raw = app_targets[0].get("version", "")
+            raw_version = app_targets[0].get("version", "")
         elif app_failures:
-            v_raw = app_failures[0].version
-        version = _format_version(v_raw)
+            raw_version = app_failures[0].version
+        version = _format_version(raw_version)
 
         total_targets = len(app_targets) + len(app_failures)
         is_multi = total_targets > 1
@@ -596,21 +596,21 @@ def write_download_summary(
         if app_targets and not app_failures:
             icon = f"{Colors.GREEN}[✓]{Colors.RESET}"
             if is_multi:
-                parts = [f"({t['arch']}) {Path(t['stock_apk_path']).name}" for t in app_targets]
+                parts = [f"({target['arch']}) {Path(target['stock_apk_path']).name}" for target in app_targets]
                 print(f"{icon} {name}: {version} > {'; '.join(parts)}")
             else:
                 print(f"{icon} {name}: {version} > {Path(app_targets[0]['stock_apk_path']).name}")
         elif app_targets and app_failures:
             icon = f"{Colors.YELLOW}[▲]{Colors.RESET}"
-            parts = [f"({t['arch']}) {Path(t['stock_apk_path']).name}" for t in app_targets]
-            for r in app_failures:
-                err = r.error_message or "Download failed"
-                parts.append(f"({r.arch}) FAILED {{{err}}}")
+            parts = [f"({target['arch']}) {Path(target['stock_apk_path']).name}" for target in app_targets]
+            for failure in app_failures:
+                err = failure.error_message or "Download failed"
+                parts.append(f"({failure.arch}) FAILED {{{err}}}")
             print(f"{icon} {name}: {version} > {'; '.join(parts)}")
         else:
             icon = f"{Colors.RED}[✗]{Colors.RESET}"
             if is_multi:
-                parts = [f"({r.arch}) FAILED {{{r.error_message or 'Download failed'}}}" for r in app_failures]
+                parts = [f"({failure.arch}) FAILED {{{failure.error_message or 'Download failed'}}}" for failure in app_failures]
                 print(f"{icon} {name}: {version} > {'; '.join(parts)}")
             else:
                 err = app_failures[0].error_message if app_failures else "Download failed"
@@ -623,19 +623,19 @@ def write_download_summary(
 
 
 def _format_patch_recipe(
-    r: BuildResult,
+    result: BuildResult,
     general: GeneralConfig,
     apps_map: Optional[Dict[str, AppConfig]] = None,
 ) -> str:
     """Format patch recipe string for PATCH SUMMARY, omitting CLI if using default CLI."""
-    cli_source = r.cli_source
-    cli_tag = r.cli_tag or "latest"
-    patches_source = r.patches_source
-    patches_tag = r.patches_tag or "latest"
+    cli_source = result.cli_source
+    cli_tag = result.cli_tag or "latest"
+    patches_source = result.patches_source
+    patches_tag = result.patches_tag or "latest"
 
     is_default_cli = False
-    if apps_map and r.name in apps_map:
-        app = apps_map[r.name]
+    if apps_map and result.name in apps_map:
+        app = apps_map[result.name]
         if not cli_source:
             cli_source = app.cli_source
         if not patches_source:
@@ -666,7 +666,7 @@ def write_patch_summary(
         try:
             general, apps = load_config(ROOT_DIR / "config.toml")
             if apps_map is None:
-                apps_map = {a.name: a for a in apps}
+                apps_map = {app.name: app for app in apps}
         except Exception:
             general = GeneralConfig()
             if apps_map is None:
@@ -674,7 +674,7 @@ def write_patch_summary(
     elif apps_map is None:
         try:
             _, apps = load_config(ROOT_DIR / "config.toml")
-            apps_map = {a.name: a for a in apps}
+            apps_map = {app.name: app for app in apps}
         except Exception:
             apps_map = {}
 
@@ -684,48 +684,48 @@ def write_patch_summary(
 
     # Group results by name maintaining order
     grouped: Dict[str, List[BuildResult]] = {}
-    for r in results:
-        grouped.setdefault(r.name, []).append(r)
+    for result in results:
+        grouped.setdefault(result.name, []).append(result)
 
     for name, app_results in grouped.items():
-        all_success = all(r.success for r in app_results)
-        any_success = any(r.success for r in app_results)
+        all_success = all(result.success for result in app_results)
+        any_success = any(result.success for result in app_results)
         is_multi = len(app_results) > 1
 
-        first_r = app_results[0]
-        v_raw = first_r.version
-        version = _format_version(v_raw)
+        first_result = app_results[0]
+        raw_version = first_result.version
+        version = _format_version(raw_version)
 
-        recipe_str = _format_patch_recipe(first_r, general, apps_map)
+        recipe_str = _format_patch_recipe(first_result, general, apps_map)
 
         if all_success:
             icon = f"{Colors.GREEN}[✓]{Colors.RESET}"
             if is_multi:
                 parts = [
-                    f"({r.arch}) {r.output_path.name if r.output_path else f'{r.name}_{version}_{r.arch}.apk'}"
-                    for r in app_results
+                    f"({result.arch}) {result.output_path.name if result.output_path else f'{result.name}_{version}_{result.arch}.apk'}"
+                    for result in app_results
                 ]
                 print(f"{icon} {name}: {version} [{recipe_str}] > {'; '.join(parts)}")
             else:
-                apk_name = first_r.output_path.name if first_r.output_path else f"{first_r.name}_{version}.apk"
+                apk_name = first_result.output_path.name if first_result.output_path else f"{first_result.name}_{version}.apk"
                 print(f"{icon} {name}: {version} [{recipe_str}] > {apk_name}")
         elif any_success:
             icon = f"{Colors.YELLOW}[▲]{Colors.RESET}"
             parts = []
-            for r in app_results:
-                if r.success and r.output_path:
-                    parts.append(f"({r.arch}) {r.output_path.name}")
+            for result in app_results:
+                if result.success and result.output_path:
+                    parts.append(f"({result.arch}) {result.output_path.name}")
                 else:
-                    err = r.error_message or "Patching failed"
-                    parts.append(f"({r.arch}) FAILED {{{err}}}")
+                    err = result.error_message or "Patching failed"
+                    parts.append(f"({result.arch}) FAILED {{{err}}}")
             print(f"{icon} {name}: {version} [{recipe_str}] > {'; '.join(parts)}")
         else:
             icon = f"{Colors.RED}[✗]{Colors.RESET}"
             if is_multi:
-                parts = [f"({r.arch}) FAILED {{{r.error_message or 'Patching failed'}}}" for r in app_results]
+                parts = [f"({result.arch}) FAILED {{{result.error_message or 'Patching failed'}}}" for result in app_results]
                 print(f"{icon} {name}: {version} [{recipe_str}] > {'; '.join(parts)}")
             else:
-                err = first_r.error_message or "Patching failed"
+                err = first_result.error_message or "Patching failed"
                 print(f"{icon} {name}: {version} [{recipe_str}] > FAILED {{{err}}}")
 
     # Write RELEASE.md for GitHub Releases
@@ -737,29 +737,29 @@ def write_patch_summary(
     new_source_lines: Dict[str, str] = {}
 
     for name, app_results in grouped.items():
-        success_results = [r for r in app_results if r.success]
+        success_results = [result for result in app_results if result.success]
         if not success_results:
             continue
 
-        first_r = success_results[0]
+        first_result = success_results[0]
         target_links = []
         is_multi = len(success_results) > 1
-        for r in success_results:
-            version = _format_version(r.version)
-            if is_multi or r.arch not in ("all", "universal", ""):
-                label = f"{version} ({r.arch})"
+        for result in success_results:
+            version = _format_version(result.version)
+            if is_multi or result.arch not in ("all", "universal", ""):
+                label = f"{version} ({result.arch})"
             else:
                 label = version
 
             if repo and release_tag:
-                apk_name = r.output_path.name if r.output_path else f"{r.name}_{version}{'' if r.arch in ('all', 'universal', '') else f'_{r.arch}'}.apk"
+                apk_name = result.output_path.name if result.output_path else f"{result.name}_{version}{'' if result.arch in ('all', 'universal', '') else f'_{result.arch}'}.apk"
                 dl_url = f"https://github.com/{repo}/releases/download/{release_tag}/{apk_name}"
                 target_links.append(f"[{label}]({dl_url})")
             else:
                 target_links.append(label)
 
         targets_str = "; ".join(target_links)
-        patches_source = first_r.patches_source or (
+        patches_source = first_result.patches_source or (
             apps_map[name].patches_source if apps_map and name in apps_map else (
                 general.default_patches_source if general else ""
             )
@@ -769,13 +769,13 @@ def write_patch_summary(
         new_app_lines[name] = f"{name}: {targets_str} [`{patches_source}`]  "
 
         # Track sources for bottom section
-        cli_tag = first_r.cli_tag or "latest"
-        cli_url = f"https://github.com/{first_r.cli_source}/releases/tag/{cli_tag}"
-        new_source_lines[first_r.cli_source] = f"{first_r.cli_source}: [{cli_tag}]({cli_url})  "
+        cli_tag = first_result.cli_tag or "latest"
+        cli_url = f"https://github.com/{first_result.cli_source}/releases/tag/{cli_tag}"
+        new_source_lines[first_result.cli_source] = f"{first_result.cli_source}: [{cli_tag}]({cli_url})  "
 
-        patches_tag = first_r.patches_tag or "latest"
-        patches_url = f"https://github.com/{first_r.patches_source}/releases/tag/{patches_tag}"
-        new_source_lines[first_r.patches_source] = f"{first_r.patches_source}: [{patches_tag}]({patches_url})  "
+        patches_tag = first_result.patches_tag or "latest"
+        patches_url = f"https://github.com/{first_result.patches_source}/releases/tag/{patches_tag}"
+        new_source_lines[first_result.patches_source] = f"{first_result.patches_source}: [{patches_tag}]({patches_url})  "
 
     existing_apps: Dict[str, str] = {}
     existing_sources: Dict[str, str] = {}
@@ -847,17 +847,17 @@ def main() -> int:
     general, apps = load_config(config_path)
 
     # Build a full map before any filtering so --patch-only can resolve all app names from the manifest
-    apps_map = {a.name: a for a in apps}
+    apps_map = {app.name: app for app in apps}
 
     # Filter apps if --app specified (supports comma-separated list)
     if args.app:
         target_names = {x.strip().lower() for x in args.app.split(",") if x.strip()}
-        apps = [a for a in apps if a.name.lower() in target_names or a.id.lower() in target_names]
+        apps = [app for app in apps if app.name.lower() in target_names or app.id.lower() in target_names]
         if not apps:
             log_error(f"No matching apps found in config for '{args.app}'")
             return 1
 
-    enabled_apps = [a for a in apps if a.enabled]
+    enabled_apps = [app for app in apps if app.enabled]
     if not enabled_apps:
         log_warn("No enabled apps found in configuration.")
         return 0
@@ -991,10 +991,10 @@ def main() -> int:
 
     # Group targets by app maintaining order
     targets_by_app: Dict[str, List[Dict[str, Any]]] = {}
-    for t in targets_to_patch:
-        name = t.get("name", "")
+    for target in targets_to_patch:
+        name = target.get("name", "")
         if name:
-            targets_by_app.setdefault(name, []).append(t)
+            targets_by_app.setdefault(name, []).append(target)
 
     total_patch_apps = len(targets_by_app)
     for app_idx, (name, app_targets) in enumerate(targets_by_app.items(), 1):
@@ -1005,14 +1005,14 @@ def main() -> int:
         group_start(f"Patch [{app_idx}/{total_patch_apps}]: {app.name}")
         log_app_banner(app_idx, total_patch_apps, app.name, app.id)
 
-        for t in app_targets:
-            res = patch_single_target(
-                target_info=t,
+        for target in app_targets:
+            result = patch_single_target(
+                target_info=target,
                 app=app,
                 general=general,
                 dry_run=args.dry_run
             )
-            results.append(res)
+            results.append(result)
 
         group_end()
 

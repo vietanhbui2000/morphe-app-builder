@@ -16,9 +16,9 @@ from core.logger import log_info, log_warn, log_error
 from core.models import AppConfig
 from patchers.base import BasePatcher
 
-def _version_key(v: str):
+def _version_key(version: str):
     """Sort key for semantic / numeric versions (e.g. '21.18.168' -> [21, 18, 168])."""
-    parts = re.findall(r"\d+", v)
+    parts = re.findall(r"\d+", version)
     return [int(p) for p in parts] if parts else [0]
 
 class MorphePatcher(BasePatcher):
@@ -51,9 +51,9 @@ class MorphePatcher(BasePatcher):
                 "-f", app_id
             ]
             try:
-                res = subprocess.run(cmd, capture_output=True, text=True, check=False)
-                if res.returncode == 0 and res.stdout:
-                    stdout = res.stdout
+                result = subprocess.run(cmd, capture_output=True, text=True, check=False)
+                if result.returncode == 0 and result.stdout:
+                    stdout = result.stdout
 
                     # If mode is auto, prefer "Most common compatible versions" (supporting all/most patches)
                     if mode == "auto" and "Most common compatible versions:" in stdout:
@@ -99,13 +99,13 @@ class MorphePatcher(BasePatcher):
 
         for cmd_list_patches in list_patches_variants:
             try:
-                res = subprocess.run(cmd_list_patches, capture_output=True, text=True, check=False)
-                if res.returncode == 0 and res.stdout:
-                    lines = res.stdout.splitlines()
+                result = subprocess.run(cmd_list_patches, capture_output=True, text=True, check=False)
+                if result.returncode == 0 and result.stdout:
+                    lines = result.stdout.splitlines()
                     found_pkg = False
                     in_versions = False
-                    version_counts: Dict[str, int] = {}
-                    all_versions: List[str] = []
+                    version_counts: dict[str, int] = {}
+                    all_versions: list[str] = []
 
                     for line in lines:
                         line_s = line.strip()
