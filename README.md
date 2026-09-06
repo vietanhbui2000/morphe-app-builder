@@ -1,4 +1,4 @@
-# Morphe Apps Builder
+# Morphe App Builder
 
 A modern, modular, and automated APK builder for [Morphe](https://github.com/MorpheApp) patch bundles.
 
@@ -128,7 +128,7 @@ excluded_patches = [
 ## Project Structure
 
 ```text
-morphe-apps-builder/
+morphe-app-builder/
 ├── config.toml                 # Declarative app and patch definitions
 ├── CONFIG.md                   # Detailed configuration reference and schema
 ├── keystore.keystore           # Release signing keystore (alias: vietanhbui2000)

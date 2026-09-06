@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Morphe Apps Builder — Main CLI Orchestrator.
+Morphe App Builder — Main CLI Orchestrator.
 Supports unified all-in-one builds as well as decoupled --download-only and --patch-only workflows.
 """
 
@@ -760,7 +760,7 @@ def write_patch_summary(results: List[BuildResult]) -> int:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Morphe Apps Builder")
+    parser = argparse.ArgumentParser(description="Morphe App Builder")
     parser.add_argument("-c", "--config", default="config.toml", help="Path to config.toml")
     parser.add_argument("-a", "--app", help="Build or download only a specific app by section name (comma-separated for multiple)")
     parser.add_argument("--download-only", action="store_true", help="Download prebuilts and stock APKs only")

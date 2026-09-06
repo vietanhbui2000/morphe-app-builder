@@ -25,7 +25,7 @@ class GitHubClient:
     def __init__(self):
         self.headers = {
             "Accept": "application/vnd.github.v3+json",
-            "User-Agent": "Morphe-Apps-Builder",
+            "User-Agent": "Morphe-App-Builder",
         }
         if GITHUB_TOKEN:
             self.headers["Authorization"] = f"token {GITHUB_TOKEN}"

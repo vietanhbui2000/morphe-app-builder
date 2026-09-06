@@ -1,12 +1,12 @@
 # Keystore & APK Signing Guide
 
-This document explains how APK signing, keystore management, and signature compatibility work in `morphe-apps-builder`.
+This document explains how APK signing, keystore management, and signature compatibility work in `morphe-app-builder`.
 
 ---
 
 ## 1. Overview & Default Configuration
 
-Android requires all installed APKs to be cryptographically signed with an RSA certificate. In `morphe-apps-builder`, APK signing occurs after patching and architecture filtering.
+Android requires all installed APKs to be cryptographically signed with an RSA certificate. In `morphe-app-builder`, APK signing occurs after patching and architecture filtering.
 
 | Setting | Default Value | Description |
 | :--- | :--- | :--- |
@@ -31,7 +31,7 @@ keystore_password = "1234567890"
 - **PKCS#12 (`PKCS12`)**: The industry standard format (default in JDK 9+ and Android build tools). Fully supported by modern `apksigner`, `keytool`, and patcher CLIs.
 - **JKS (Java KeyStore)**: Legacy proprietary format from older Java versions. Modern `apksigner` on Java 21 rejects JKS by default (`toDerInputStream rejects tag type 0`) unless explicit flags are provided.
 
-`morphe-apps-builder` uses **PKCS#12** by default and includes automatic multi-format detection fallback (`[default, PKCS12, JKS]`) in [`core/apk.py`](core/apk.py) during the signing phase.
+`morphe-app-builder` uses **PKCS#12** by default and includes automatic multi-format detection fallback (`[default, PKCS12, JKS]`) in [`core/apk.py`](core/apk.py) during the signing phase.
 
 ---
 
