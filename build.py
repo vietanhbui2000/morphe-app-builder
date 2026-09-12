@@ -751,31 +751,35 @@ def write_patch_summary(
             continue
 
         first_result = success_results[0]
-        target_links = []
-        is_multi = len(success_results) > 1
-        for result in success_results:
-            version = _format_version(result.version)
-            if is_multi or result.arch not in ("all", "universal", ""):
-                label = f"{version} ({result.arch})"
-            else:
-                label = version
-
-            if repo and release_tag:
-                apk_name = result.output_path.name if result.output_path else f"{result.name}_{version}{'' if result.arch in ('all', 'universal', '') else f'_{result.arch}'}.apk"
-                dl_url = f"https://github.com/{repo}/releases/download/{release_tag}/{apk_name}"
-                target_links.append(f"[{label}]({dl_url})")
-            else:
-                target_links.append(label)
-
-        targets_str = "; ".join(target_links)
+        version = _format_version(first_result.version)
         patches_source = first_result.patches_source or (
             apps_map[name].patches_source if apps_map and name in apps_map else (
                 general.default_patches_source if general else ""
             )
         )
 
-        # App line format: AppName: [vX.Y.Z](link) [`patches_source`]  
-        new_app_lines[name] = f"{name}: {targets_str} [`{patches_source}`]  "
+        target_links = []
+        is_multi = len(success_results) > 1
+        for result in success_results:
+            res_version = _format_version(result.version)
+            has_arch = is_multi or result.arch not in ("all", "universal", "")
+            arch_prefix = f"({result.arch}) " if has_arch else ""
+
+            if repo and release_tag:
+                apk_name = (
+                    result.output_path.name
+                    if result.output_path
+                    else f"{result.name}_{res_version}{'' if result.arch in ('all', 'universal', '') else f'_{result.arch}'}.apk"
+                )
+                dl_url = f"https://github.com/{repo}/releases/download/{release_tag}/{apk_name}"
+                target_links.append(f"{arch_prefix}[↓]({dl_url})")
+            elif arch_prefix:
+                target_links.append(f"({result.arch})")
+
+        targets_suffix = f" {'; '.join(target_links)}" if target_links else ""
+
+        # App line format: AppName: vX.Y.Z [patches_source] [↓](link)  
+        new_app_lines[name] = f"{name}: {version} [{patches_source}]{targets_suffix}  "
 
         # Track sources for bottom section
         cli_tag = first_result.cli_tag or "latest"
