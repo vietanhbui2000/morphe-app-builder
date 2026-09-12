@@ -74,3 +74,13 @@ arch = ["universal"]
 apkmirror_url = "https://www.apkmirror.com/apk/proton-technologies-ag/protonvpn-secure-and-free-vpn/"
 uptodown_url = "https://protonvpn.en.uptodown.com/android"
 patches_source = "hoo-dles/morphe-patches"
+
+[Projectivy-Launcher]
+enabled = true
+id = "com.spocky.projengmenu"
+version = "auto"
+arch = ["universal"]
+apkmirror_url = "https://www.apkmirror.com/apk/spocky/projectivy-launcher-android-tv/"
+uptodown_url = "https://projectivy-launcher.en.uptodown.com/android"
+apkpure_url = "https://apkpure.com/projectivy-launcher/com.spocky.projengmenu"
+patches_source = "Entree3k/Morning-Entree-Patches"
