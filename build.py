@@ -375,9 +375,7 @@ def patch_single_target(
     general: GeneralConfig,
     dry_run: bool = False
 ) -> BuildResult:
-    """
-    Patch and sign phase for a pre-downloaded target.
-    """
+    """Patch and sign phase for a pre-downloaded target."""
     name = target_info.get("name", app.name)
     arch = target_info["arch"]
     version = target_info["version"]

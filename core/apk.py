@@ -185,9 +185,7 @@ def get_apk_architectures(apk_path: Path) -> list[str]:
     return sorted(list(abis), key=lambda x: order.index(x) if x in order else 99)
 
 def strip_architectures(apk_path: Path, keep_arch: str, output_path: Path) -> bool:
-    """
-    Remove all native libraries except those matching keep_arch by streaming zip entries.
-    """
+    """Remove all native libraries except those matching keep_arch by streaming zip entries."""
     if keep_arch in ("all", "universal", "", "arm64-v8a+armeabi-v7a", "arm64-v8a + armeabi-v7a"):
         if apk_path != output_path:
             shutil.copy2(apk_path, output_path)
