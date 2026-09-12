@@ -1,10 +1,10 @@
-YouTube: v21.13.164 [MorpheApp/morphe-patches] [↓](https://github.com/vietanhbui2000/morphe-app-builder/releases/download/260913064254/YouTube_v21.13.164.apk)  
-YouTube-Music: v9.15.51 [MorpheApp/morphe-patches] (arm64-v8a) [↓](https://github.com/vietanhbui2000/morphe-app-builder/releases/download/260913064254/YouTube-Music_v9.15.51_arm64-v8a.apk); (armeabi-v7a) [↓](https://github.com/vietanhbui2000/morphe-app-builder/releases/download/260913064254/YouTube-Music_v9.15.51_armeabi-v7a.apk)  
-Twitch: v30.7.2 [arandomhooman/hoomans-morphe-patches] [↓](https://github.com/vietanhbui2000/morphe-app-builder/releases/download/260913064254/Twitch_v30.7.2.apk)  
-TikTok: v46.2.3 [icysymmetra/tiktok-patches-for-morphe] [↓](https://github.com/vietanhbui2000/morphe-app-builder/releases/download/260913064254/TikTok_v46.2.3.apk)  
-1.1.1.1: v6.38.9 [rushiranpise/morphe-patches] [↓](https://github.com/vietanhbui2000/morphe-app-builder/releases/download/260913064254/1.1.1.1_v6.38.9.apk)  
-Proton-VPN: v5.19.43.0 [hoo-dles/morphe-patches] [↓](https://github.com/vietanhbui2000/morphe-app-builder/releases/download/260913064254/Proton-VPN_v5.19.43.0.apk)  
-Projectivy-Launcher: v4.71 [Entree3k/Morning-Entree-Patches] [↓](https://github.com/vietanhbui2000/morphe-app-builder/releases/download/260913064254/Projectivy-Launcher_v4.71.apk)  
+YouTube: [v21.13.164](https://github.com/vietanhbui2000/morphe-app-builder/releases/download/260911064816/YouTube_v21.13.164.apk) [`MorpheApp/morphe-patches`]  
+YouTube-Music: [v9.15.51 (arm64-v8a)](https://github.com/vietanhbui2000/morphe-app-builder/releases/download/260911064816/YouTube-Music_v9.15.51_arm64-v8a.apk); [v9.15.51 (armeabi-v7a)](https://github.com/vietanhbui2000/morphe-app-builder/releases/download/260911064816/YouTube-Music_v9.15.51_armeabi-v7a.apk) [`MorpheApp/morphe-patches`]  
+Twitch: [v30.7.2](https://github.com/vietanhbui2000/morphe-app-builder/releases/download/260911064816/Twitch_v30.7.2.apk) [`arandomhooman/hoomans-morphe-patches`]  
+TikTok: [v46.2.3](https://github.com/vietanhbui2000/morphe-app-builder/releases/download/260911064816/TikTok_v46.2.3.apk) [`icysymmetra/tiktok-patches-for-morphe`]  
+1.1.1.1: [v6.38.9](https://github.com/vietanhbui2000/morphe-app-builder/releases/download/260911064816/1.1.1.1_v6.38.9.apk) [`rushiranpise/morphe-patches`]  
+Proton-VPN: [v5.19.43.0](https://github.com/vietanhbui2000/morphe-app-builder/releases/download/260911064816/Proton-VPN_v5.19.43.0.apk) [`hoo-dles/morphe-patches`]  
+Projectivy-Launcher: v4.71 [Entree3k/Morning-Entree-Patches] [↓](https://github.com/vietanhbui2000/morphe-app-builder/releases/download/260913064749/Projectivy-Launcher_v4.71.apk)  
 
 ℹ Install [MicroG ↗](https://github.com/MorpheApp/MicroG-RE/releases/latest) to enable Google account authentication and services for Morphe apps.
 
