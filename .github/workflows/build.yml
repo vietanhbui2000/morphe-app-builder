@@ -123,7 +123,7 @@ jobs:
           cat LATEST.md >> "$GITHUB_OUTPUT"
           echo "${DELIM_LATEST}" >> "$GITHUB_OUTPUT"
 
-      - name: Publish GitHub Release
+      - name: Publish Current Release
         env:
           TITLE: "${{ steps.tag_gen.outputs.RELEASE_TAG }}"
           TAG: "${{ steps.tag_gen.outputs.RELEASE_TAG }}"
@@ -142,6 +142,13 @@ jobs:
             exit 1
           fi
 
+      - name: Update Pinned Release
+        env:
+          NOTES_LATEST: "${{ steps.release_notes.outputs.NOTES_LATEST }}"
+        run: |
+          gh release edit latest --title "Morphe App Builder" --notes "$NOTES_LATEST" 2>/dev/null || \
+          gh release create latest --title "Morphe App Builder" --notes "$NOTES_LATEST"
+
       - name: Commit Release Notes to releaselog branch
         run: |
           git config user.name "github-actions[bot]"
@@ -156,13 +163,6 @@ jobs:
             git commit -m "Release ${{ steps.tag_gen.outputs.RELEASE_TAG }}"
             git push origin HEAD:releaselog
           fi
-
-      - name: Update Floating Latest Release
-        env:
-          NOTES_LATEST: "${{ steps.release_notes.outputs.NOTES_LATEST }}"
-        run: |
-          gh release edit latest --title "Morphe App Builder" --notes "$NOTES_LATEST" 2>/dev/null || \
-          gh release create latest --title "Morphe App Builder" --notes "$NOTES_LATEST"
 
       - name: Prune Old Releases & Orphaned Tags
         run: |

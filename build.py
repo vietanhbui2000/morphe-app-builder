@@ -846,7 +846,7 @@ def write_patch_summary(
         patches_url = f"https://github.com/{first_result.patches_source}/releases/tag/{patches_tag}" if patches_tag != "latest" else f"https://github.com/{first_result.patches_source}/releases/latest"
         new_source_lines[first_result.patches_source] = f"{first_result.patches_source}: [{patches_tag}]({patches_url})  "
 
-    # 1. Write RELEASE.md for the timestamped release (only apps built in this run)
+    # 1. Write RELEASE.md for Current Release (only apps built in this run)
     release_sections = []
     if new_app_lines:
         release_sections.append("## Apps\n\n" + "\n".join(new_app_lines.values()))
@@ -859,9 +859,9 @@ def write_patch_summary(
         release_sections.append("## Sources\n\n" + "\n".join(new_source_lines.values()))
 
     RELEASE_MD_PATH.write_text("\n\n".join(release_sections) + ("\n" if release_sections else ""), encoding="utf-8")
-    log_success(f"Wrote release notes to {RELEASE_MD_PATH.name}")
+    log_success(f"Wrote current release notes to {RELEASE_MD_PATH.name}")
 
-    # 2. Write LATEST.md for the floating latest release (cumulative for ALL apps)
+    # 2. Write LATEST.md for Pinned Release (cumulative for ALL apps)
     latest_file = LATEST_MD_PATH if LATEST_MD_PATH.is_file() else (
         RELEASE_MD_PATH if RELEASE_MD_PATH.is_file() else None
     )
@@ -892,7 +892,7 @@ def write_patch_summary(
         latest_sections.append("## Sources\n\n" + "\n".join(existing_sources.values()))
 
     LATEST_MD_PATH.write_text("\n\n".join(latest_sections) + ("\n" if latest_sections else ""), encoding="utf-8")
-    log_success(f"Wrote cumulative latest notes to {LATEST_MD_PATH.name}")
+    log_success(f"Wrote pinned release notes to {LATEST_MD_PATH.name}")
 
     return 0 if any(r.success for r in results) else 1
 
