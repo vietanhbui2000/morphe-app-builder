@@ -142,11 +142,12 @@ jobs:
             exit 1
           fi
 
-      - name: Update Pinned Release
+      - name: Publish Pinned Release
         env:
           NOTES_LATEST: "${{ steps.release_notes.outputs.NOTES_LATEST }}"
         run: |
-          gh release edit latest --title "Morphe App Builder" --notes "$NOTES_LATEST" 2>/dev/null || \
+          gh release delete latest --yes --cleanup-tag 2>/dev/null || true
+          git tag -d latest 2>/dev/null || true
           gh release create latest --title "Morphe App Builder" --notes "$NOTES_LATEST"
 
       - name: Commit Release Notes to releaselog branch
