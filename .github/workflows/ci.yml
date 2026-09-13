@@ -10,6 +10,10 @@ on:
       - 'config.toml'
   workflow_dispatch:
 
+concurrency:
+  group: release-pipeline
+  cancel-in-progress: false
+
 jobs:
   check:
     name: Check New Updates

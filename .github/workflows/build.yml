@@ -16,6 +16,10 @@ on:
         type: string
         default: ""
 
+concurrency:
+  group: ${{ github.workflow == 'Build APKs' && 'release-pipeline' || github.run_id }}
+  cancel-in-progress: false
+
 jobs:
   build:
     name: Build APKs
