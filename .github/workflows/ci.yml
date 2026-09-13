@@ -43,12 +43,12 @@ jobs:
 
       - name: Checkout Previous Release Notes
         run: |
-          git checkout origin/releaselog RELEASE.md || true
+          git checkout origin/releaselog LATEST.md RELEASE.md || true
 
       - name: Check for Updates
         id: check_step
         run: |
-          if [ "${{ github.event_name }}" == "push" ] || [ "${{ github.event_name }}" == "workflow_dispatch" ] || [ ! -f "RELEASE.md" ]; then
+          if [ "${{ github.event_name }}" == "push" ] || [ "${{ github.event_name }}" == "workflow_dispatch" ] || [ ! -f "LATEST.md" ]; then
             echo "SHOULD_BUILD=1" >> "$GITHUB_OUTPUT"
             echo "APPS_TO_BUILD=" >> "$GITHUB_OUTPUT"
           else

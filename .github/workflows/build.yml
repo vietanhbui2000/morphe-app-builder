@@ -84,7 +84,7 @@ jobs:
 
       - name: Checkout Previous Release Notes
         run: |
-          git checkout origin/releaselog RELEASE.md || true
+          git checkout origin/releaselog LATEST.md RELEASE.md || true
 
       - name: Patch & Sign APKs
         env:
@@ -117,7 +117,11 @@ jobs:
           echo "NOTES<<${DELIM}" >> "$GITHUB_OUTPUT"
           cat RELEASE.md >> "$GITHUB_OUTPUT"
           echo "${DELIM}" >> "$GITHUB_OUTPUT"
-          cp -f RELEASE.md release.tmp
+
+          DELIM_LATEST="$(openssl rand -hex 8)"
+          echo "NOTES_LATEST<<${DELIM_LATEST}" >> "$GITHUB_OUTPUT"
+          cat LATEST.md >> "$GITHUB_OUTPUT"
+          echo "${DELIM_LATEST}" >> "$GITHUB_OUTPUT"
 
       - name: Publish GitHub Release
         env:
@@ -138,10 +142,32 @@ jobs:
             exit 1
           fi
 
+      - name: Commit Release Notes to releaselog branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          cp -f RELEASE.md release.tmp
+          cp -f LATEST.md latest.tmp
+          git checkout -f releaselog 2>/dev/null || git switch --discard-changes --orphan releaselog
+          mv -f release.tmp RELEASE.md
+          mv -f latest.tmp LATEST.md
+          git add RELEASE.md LATEST.md
+          if ! git diff --cached --quiet; then
+            git commit -m "Release ${{ steps.tag_gen.outputs.RELEASE_TAG }}"
+            git push origin HEAD:releaselog
+          fi
+
+      - name: Update Floating Latest Release
+        env:
+          NOTES_LATEST: "${{ steps.release_notes.outputs.NOTES_LATEST }}"
+        run: |
+          gh release edit latest --title "Morphe App Builder" --notes "$NOTES_LATEST" 2>/dev/null || \
+          gh release create latest --title "Morphe App Builder" --notes "$NOTES_LATEST"
+
       - name: Prune Old Releases & Orphaned Tags
         run: |
           echo "Cleaning older releases (keeping 10 most recent)..."
-          ALL_TAGS=$(gh release list --limit 100 --json tagName -q '.[].tagName')
+          ALL_TAGS=$(gh release list --limit 100 --json tagName -q '.[].tagName' | grep -v '^latest$')
           TOTAL=$(echo "$ALL_TAGS" | grep -v '^$' | wc -l | tr -d ' ')
           if [ "$TOTAL" -gt 10 ]; then
             echo "$ALL_TAGS" | tail -n +11 | while read -r old_tag; do
@@ -160,15 +186,3 @@ jobs:
               git tag -d "$t" 2>/dev/null || true
             fi
           done
-
-      - name: Commit RELEASE.md to releaselog branch
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git checkout -f releaselog 2>/dev/null || git switch --discard-changes --orphan releaselog
-          cp -f release.tmp RELEASE.md
-          git add RELEASE.md
-          if ! git diff --cached --quiet; then
-            git commit -m "Release ${{ steps.tag_gen.outputs.RELEASE_TAG }}"
-            git push origin HEAD:releaselog
-          fi
