@@ -7,7 +7,6 @@ Supports unified all-in-one builds as well as decoupled --download-only and --pa
 import argparse
 import json
 import os
-import re
 import shutil
 import subprocess
 import sys
@@ -40,6 +39,8 @@ APKS_DIR = DOWNLOADS_DIR / "apks"
 CLI_DIR = DOWNLOADS_DIR / "cli"
 PATCHES_DIR = DOWNLOADS_DIR / "patches"
 MANIFEST_PATH = DOWNLOADS_DIR / "targets_manifest.json"
+RELEASE_MD_PATH = ROOT_DIR / "RELEASE.md"
+LATEST_MD_PATH = ROOT_DIR / "LATEST.md"
 
 
 def clean_workspace():
@@ -48,24 +49,56 @@ def clean_workspace():
     for directory in (TEMP_DIR, OUTPUT_DIR):
         if directory.is_dir():
             shutil.rmtree(directory, ignore_errors=True)
-    release_md_path = ROOT_DIR / "RELEASE.md"
-    if release_md_path.is_file():
-        release_md_path.unlink(missing_ok=True)
+    for f in (RELEASE_MD_PATH, LATEST_MD_PATH):
+        if f.is_file():
+            f.unlink(missing_ok=True)
     log_success("Workspace cleaned.")
 
 
-def _extract_source_tag_from_release_md(source: str, release_text: str) -> str:
-    """Extract tag for a CLI or patches repository from previous RELEASE.md."""
-    if not release_text:
+def load_release_markdown(path: Path) -> Tuple[Dict[str, str], Dict[str, str]]:
+    """Load existing apps and sources mapping from a markdown release notes file."""
+    apps: Dict[str, str] = {}
+    sources: Dict[str, str] = {}
+    if not path.is_file():
+        return apps, sources
+
+    text = path.read_text(encoding="utf-8")
+    if "## Sources" in text:
+        apps_part, sources_part = text.split("## Sources", 1)
+    elif "---" in text:
+        apps_part, sources_part = text.split("---", 1)
+    else:
+        apps_part = text
+        sources_part = ""
+
+    for line in apps_part.splitlines():
+        line_s = line.strip()
+        if not line_s or line_s.startswith(("#", "ℹ", "└", "---")):
+            continue
+        if ":" in line_s:
+            name = line_s.split(":", 1)[0].strip()
+            apps[name] = line.rstrip() + "  "
+
+    for line in sources_part.splitlines():
+        line_s = line.strip()
+        if not line_s or line_s.startswith(("#", "ℹ", "└", "---")):
+            continue
+        if ":" in line_s:
+            src = line_s.split(":", 1)[0].strip()
+            sources[src] = line.rstrip() + "  "
+
+    return apps, sources
+
+
+def _extract_tag_from_source_line(line: str) -> str:
+    """Extract the version tag from a markdown source line (e.g. 'Owner/repo: [v1.0](url)')."""
+    if not line:
         return ""
-    if "---" in release_text:
-        _, sources_part = release_text.split("---", 1)
-        match = re.search(rf"^{re.escape(source)}:\s*\[([^\]]+)\]", sources_part, re.MULTILINE)
-        if match:
-            return match.group(1).strip()
-    pattern = rf"{re.escape(source)}[\s:]+\[?([a-zA-Z0-9._-]+)\]?"
-    match = re.search(pattern, release_text)
-    return match.group(1) if match else ""
+    if "[" in line and "]" in line:
+        return line[line.find("[") + 1 : line.find("]")].strip()
+    if ":" in line:
+        return line.split(":", 1)[1].strip()
+    return ""
 
 
 def check_updates(config_path: Path) -> int:
@@ -81,8 +114,12 @@ def check_updates(config_path: Path) -> int:
     ))
     total_checks = len(all_sources)
 
-    release_md_path = ROOT_DIR / "RELEASE.md"
-    prev_release_text = release_md_path.read_text(encoding="utf-8") if release_md_path.is_file() else ""
+    # Read state from LATEST.md (fallback to RELEASE.md)
+    latest_file = LATEST_MD_PATH if LATEST_MD_PATH.is_file() else (
+        RELEASE_MD_PATH if RELEASE_MD_PATH.is_file() else None
+    )
+    existing_apps, existing_sources = load_release_markdown(latest_file) if latest_file else ({}, {})
+    has_prior_state = bool(existing_apps or existing_sources)
 
     source_current_tags: Dict[str, str] = {}
     source_latest_tags: Dict[str, str] = {}
@@ -95,7 +132,8 @@ def check_updates(config_path: Path) -> int:
 
     for idx, source in enumerate(all_sources, 1):
         group_start(f"Check [{idx}/{total_checks}]: {source}")
-        current_tag = _extract_source_tag_from_release_md(source, prev_release_text)
+        source_line = existing_sources.get(source, "")
+        current_tag = _extract_tag_from_source_line(source_line)
         source_current_tags[source] = current_tag
 
         log_info(f"Current: {current_tag or 'none'}")
@@ -126,28 +164,49 @@ def check_updates(config_path: Path) -> int:
     app_summary_rows: List[Tuple[str, str]] = []
 
     for app in enabled_apps:
-        cli_current_tag = source_current_tags.get(app.cli_source, "")
-        cli_latest_tag = source_latest_tags.get(app.cli_source, "")
-        cli_has_update = source_has_update.get(app.cli_source, False)
+        if not has_prior_state:
+            apps_to_build.append(app.name)
+            components = [
+                f"{app.cli_source} {source_latest_tags.get(app.cli_source) or 'latest'}".strip(),
+                f"{app.patches_source} {source_latest_tags.get(app.patches_source) or 'latest'}".strip(),
+            ]
+            app_summary_rows.append((app.name, " + ".join([c for c in components if c])))
+            continue
 
-        patches_current_tag = source_current_tags.get(app.patches_source, "")
-        patches_latest_tag = source_latest_tags.get(app.patches_source, "")
+        if app.name not in existing_apps:
+            apps_to_build.append(app.name)
+            app_summary_rows.append((app.name, "new app"))
+            continue
+
+        app_line = existing_apps[app.name]
+        cli_has_update = source_has_update.get(app.cli_source, False)
         patches_has_update = source_has_update.get(app.patches_source, False)
 
-        if cli_has_update or patches_has_update or not prev_release_text:
+        patch_source_changed = (
+            f"[`{app.patches_source}`]" not in app_line
+            and f"[{app.patches_source}]" not in app_line
+        )
+
+        version_changed = False
+        if app.version and app.version.lower() != "auto":
+            fmt_ver = _format_version(app.version)
+            if f": {fmt_ver} " not in app_line and f": {app.version} " not in app_line:
+                version_changed = True
+
+        if cli_has_update or patches_has_update or patch_source_changed or version_changed:
             apps_to_build.append(app.name)
             reasons = []
             if cli_has_update:
-                reasons.append(f"{app.cli_source} {cli_latest_tag or cli_current_tag}".strip())
+                cli_tag = source_latest_tags.get(app.cli_source) or source_current_tags.get(app.cli_source, "")
+                reasons.append(f"{app.cli_source} {cli_tag}".strip())
             if patches_has_update:
-                reasons.append(f"{app.patches_source} {patches_latest_tag or patches_current_tag}".strip())
-            if not reasons:
-                components = [
-                    f"{app.cli_source} {cli_latest_tag or cli_current_tag}".strip(),
-                    f"{app.patches_source} {patches_latest_tag or patches_current_tag}".strip(),
-                ]
-                reasons = [c for c in components if c]
-            app_summary_rows.append((app.name, " + ".join(reasons)))
+                patches_tag = source_latest_tags.get(app.patches_source) or source_current_tags.get(app.patches_source, "")
+                reasons.append(f"{app.patches_source} {patches_tag}".strip())
+            if patch_source_changed:
+                reasons.append(f"source -> {app.patches_source}")
+            if version_changed:
+                reasons.append(f"version -> {app.version}")
+            app_summary_rows.append((app.name, " + ".join(reasons) if reasons else "updated"))
 
     print("=" * 70)
     print(f"{Colors.BOLD}CHECK SUMMARY{Colors.RESET}")
@@ -664,7 +723,7 @@ def write_patch_summary(
     general: Optional[GeneralConfig] = None,
     apps_map: Optional[Dict[str, AppConfig]] = None,
 ) -> int:
-    """Generate console summary and RELEASE.md."""
+    """Generate console summary, RELEASE.md (current run), and LATEST.md (all apps)."""
     if general is None:
         try:
             general, apps = load_config(ROOT_DIR / "config.toml")
@@ -737,8 +796,7 @@ def write_patch_summary(
         icon = f"{Colors.GREEN}[✓]{Colors.RESET}"
         print(f"{icon} Keystore: {keystore_name} > Newly generated & archived in output/ for release & artifact export")
 
-    # Write RELEASE.md for GitHub Releases
-    release_md_path = ROOT_DIR / "RELEASE.md"
+    # Format current build lines for successful results
     repo = _get_github_repo()
     release_tag = os.environ.get("RELEASE_TAG", "").strip()
 
@@ -777,63 +835,64 @@ def write_patch_summary(
                 target_links.append(f"({result.arch})")
 
         targets_suffix = f" {'; '.join(target_links)}" if target_links else ""
+        patch_tag = f" [`{patches_source}`]" if patches_source else ""
+        new_app_lines[name] = f"{name}: {version}{patch_tag}{targets_suffix}  "
 
-        # App line format: AppName: vX.Y.Z [patches_source] [↓](link)  
-        new_app_lines[name] = f"{name}: {version} [{patches_source}]{targets_suffix}  "
-
-        # Track sources for bottom section
         cli_tag = first_result.cli_tag or "latest"
-        cli_url = f"https://github.com/{first_result.cli_source}/releases/tag/{cli_tag}"
+        cli_url = f"https://github.com/{first_result.cli_source}/releases/tag/{cli_tag}" if cli_tag != "latest" else f"https://github.com/{first_result.cli_source}/releases/latest"
         new_source_lines[first_result.cli_source] = f"{first_result.cli_source}: [{cli_tag}]({cli_url})  "
 
         patches_tag = first_result.patches_tag or "latest"
-        patches_url = f"https://github.com/{first_result.patches_source}/releases/tag/{patches_tag}"
+        patches_url = f"https://github.com/{first_result.patches_source}/releases/tag/{patches_tag}" if patches_tag != "latest" else f"https://github.com/{first_result.patches_source}/releases/latest"
         new_source_lines[first_result.patches_source] = f"{first_result.patches_source}: [{patches_tag}]({patches_url})  "
 
-    existing_apps: Dict[str, str] = {}
-    existing_sources: Dict[str, str] = {}
+    # 1. Write RELEASE.md for the timestamped release (only apps built in this run)
+    release_sections = []
+    if new_app_lines:
+        release_sections.append("## Apps\n\n" + "\n".join(new_app_lines.values()))
+        release_sections.append(
+            "ℹ Install [MicroG ↗](https://github.com/MorpheApp/MicroG-RE/releases/latest) "
+            "to enable Google account authentication and services for Morphe apps."
+        )
 
-    if release_md_path.is_file():
-        prev_content = release_md_path.read_text(encoding="utf-8")
-        if "---" in prev_content:
-            apps_part, sources_part = prev_content.split("---", 1)
-        else:
-            apps_part = prev_content
-            sources_part = ""
+    if new_source_lines:
+        release_sections.append("## Sources\n\n" + "\n".join(new_source_lines.values()))
 
-        for line in apps_part.splitlines():
-            line_s = line.strip()
-            if not line_s or line_s.startswith(("#", "ℹ", "└")):
-                continue
-            if ":" in line_s:
-                app_key = line_s.split(":", 1)[0].strip()
-                if "(" in app_key or "[" in app_key or "└" in app_key:
-                    continue
-                existing_apps[app_key] = line_s + "  "
+    RELEASE_MD_PATH.write_text("\n\n".join(release_sections) + ("\n" if release_sections else ""), encoding="utf-8")
+    log_success(f"Wrote release notes to {RELEASE_MD_PATH.name}")
 
-        for line in sources_part.splitlines():
-            line_s = line.strip()
-            if not line_s:
-                continue
-            if ":" in line_s:
-                source_key = line_s.split(":", 1)[0].strip()
-                existing_sources[source_key] = line_s + "  "
-
+    # 2. Write LATEST.md for the floating latest release (cumulative for ALL apps)
+    latest_file = LATEST_MD_PATH if LATEST_MD_PATH.is_file() else (
+        RELEASE_MD_PATH if RELEASE_MD_PATH.is_file() else None
+    )
+    existing_apps, existing_sources = load_release_markdown(latest_file) if latest_file else ({}, {})
     existing_apps.update(new_app_lines)
     existing_sources.update(new_source_lines)
 
-    sections = []
-    if existing_apps:
-        app_lines_str = "\n".join(existing_apps.values())
-        sections.append(app_lines_str)
-        sections.append("ℹ Install [MicroG ↗](https://github.com/MorpheApp/MicroG-RE/releases/latest) to enable Google account authentication and services for Morphe apps.")
+    ordered_app_lines: List[str] = []
+    if apps_map:
+        for app_name in apps_map:
+            if app_name in existing_apps:
+                ordered_app_lines.append(existing_apps[app_name])
+        for app_name, line in existing_apps.items():
+            if app_name not in apps_map:
+                ordered_app_lines.append(line)
+    else:
+        ordered_app_lines = list(existing_apps.values())
+
+    latest_sections = []
+    if ordered_app_lines:
+        latest_sections.append("## Apps\n\n" + "\n".join(ordered_app_lines))
+        latest_sections.append(
+            "ℹ Install [MicroG ↗](https://github.com/MorpheApp/MicroG-RE/releases/latest) "
+            "to enable Google account authentication and services for Morphe apps."
+        )
 
     if existing_sources:
-        source_lines_str = "\n".join(existing_sources.values())
-        sections.append(f"---\n\n{source_lines_str}")
+        latest_sections.append("## Sources\n\n" + "\n".join(existing_sources.values()))
 
-    release_md_path.write_text("\n\n".join(sections) + "\n", encoding="utf-8")
-    log_success(f"Wrote release notes to {release_md_path.name}")
+    LATEST_MD_PATH.write_text("\n\n".join(latest_sections) + ("\n" if latest_sections else ""), encoding="utf-8")
+    log_success(f"Wrote cumulative latest notes to {LATEST_MD_PATH.name}")
 
     return 0 if any(r.success for r in results) else 1
 
@@ -845,7 +904,7 @@ def main() -> int:
     parser.add_argument("--download-only", action="store_true", help="Download prebuilts and stock APKs only")
     parser.add_argument("--patch-only", action="store_true", help="Patch and sign pre-downloaded APKs only")
     parser.add_argument("--check-updates", action="store_true", help="Check for patch updates without building")
-    parser.add_argument("--clean", action="store_true", help="Clean temp, output, and RELEASE.md artifacts")
+    parser.add_argument("--clean", action="store_true", help="Clean temp, output, RELEASE.md, and LATEST.md artifacts")
     parser.add_argument("--dry-run", action="store_true", help="Inspect execution plan without downloading or patching")
     args = parser.parse_args()
 
