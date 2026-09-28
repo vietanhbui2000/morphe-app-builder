@@ -667,16 +667,16 @@ def write_download_summary(
             parts = [f"({target['arch']}) {Path(target['stock_apk_path']).name}" for target in app_targets]
             for failure in app_failures:
                 err = failure.error_message or "Download failed"
-                parts.append(f"({failure.arch}) FAILED {{{err}}}")
+                parts.append(f"({failure.arch}) FAILED ({err})")
             print(f"{icon} {name}: {version} > {'; '.join(parts)}")
         else:
             icon = f"{Colors.RED}[✗]{Colors.RESET}"
             if is_multi:
-                parts = [f"({failure.arch}) FAILED {{{failure.error_message or 'Download failed'}}}" for failure in app_failures]
+                parts = [f"({failure.arch}) FAILED ({failure.error_message or 'Download failed'})" for failure in app_failures]
                 print(f"{icon} {name}: {version} > {'; '.join(parts)}")
             else:
                 err = app_failures[0].error_message if app_failures else "Download failed"
-                print(f"{icon} {name}: {version} > FAILED {{{err}}}")
+                print(f"{icon} {name}: {version} > FAILED ({err})")
 
     if download_targets:
         save_manifest(download_targets)
@@ -779,16 +779,16 @@ def write_patch_summary(
                     parts.append(f"({result.arch}) {result.output_path.name}")
                 else:
                     err = result.error_message or "Patching failed"
-                    parts.append(f"({result.arch}) FAILED {{{err}}}")
+                    parts.append(f"({result.arch}) FAILED ({err})")
             print(f"{icon} {name}: {version} [{recipe_str}] > {'; '.join(parts)}")
         else:
             icon = f"{Colors.RED}[✗]{Colors.RESET}"
             if is_multi:
-                parts = [f"({result.arch}) FAILED {{{result.error_message or 'Patching failed'}}}" for result in app_results]
+                parts = [f"({result.arch}) FAILED ({result.error_message or 'Patching failed'})" for result in app_results]
                 print(f"{icon} {name}: {version} [{recipe_str}] > {'; '.join(parts)}")
             else:
                 err = first_result.error_message or "Patching failed"
-                print(f"{icon} {name}: {version} [{recipe_str}] > FAILED {{{err}}}")
+                print(f"{icon} {name}: {version} [{recipe_str}] > FAILED ({err})")
 
     keystore_name = Path(general.keystore).name if general else "keystore.keystore"
     output_keystore_path = OUTPUT_DIR / keystore_name
