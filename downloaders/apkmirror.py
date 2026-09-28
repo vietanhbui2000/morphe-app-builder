@@ -107,31 +107,34 @@ class APKMirrorDownloader(BaseDownloader):
             # Match only release index links belonging to this app's own path
             pattern = re.escape(app_path_prefix) + r'/([^/"]*-release/)' if app_path_prefix else r'href="(/apk/[^/]+/[^/]+/[^/"]*-release/)"'
             existing_links = re.findall(pattern, page1_html)
-            suffixes_tried: set = set()
+            tried: set = set()
             for link in existing_links:
-                link_full = f"{BASE_URL}{link}" if link.startswith("/") else link
-                slug_m = re.search(r'/([^/]+)-release/$', link_full)
+                slug_m = re.search(r'([^/]+)-release/$', link)
                 if not slug_m:
                     continue
                 release_slug = slug_m.group(1)
-                # Strip the app_slug prefix to isolate the numeric portion
-                prefix = f"{app_slug}-"
-                if release_slug.startswith(prefix):
-                    numeric_part = release_slug[len(prefix):]
-                else:
-                    m = re.match(r'^[a-z-]*?(\d.*)$', release_slug)
-                    numeric_part = m.group(1) if m else release_slug
-                segments = numeric_part.split("-")
+                # Split the release slug into name, version and suffix. Releases may use a different
+                # name than the app page (e.g. "tiktok-" under "tik-tok-including-musical-ly").
+                # The version starts at the first all-digit run of our length that follows a non-digit word.
+                parts = release_slug.split("-")
                 n = len(ver_parts)
-                # Only learn suffix from links whose version segment count >= our target
-                if len(segments) >= n and all(s.isdigit() for s in segments[:n]):
-                    suffix = ("-" + "-".join(segments[n:])) if len(segments) > n else ""
-                    if suffix not in suffixes_tried:
-                        suffixes_tried.add(suffix)
-                        mutated_url = f"{clean_url}/{app_slug}-{ver_slug}{suffix}-release/"
-                        html = http_client.get_html(mutated_url)
-                        if html and "404 Whoops" not in html and "Page Not Found" not in html and ("downloadButton" in html or "table-row" in html):
-                            return mutated_url
+                if release_slug.startswith(f"{app_slug}-"):
+                    start = len(app_slug.split("-"))
+                else:
+                    start = next((
+                        i for i in range(1, len(parts) - n + 1)
+                        if not parts[i - 1].isdigit() and all(p.isdigit() for p in parts[i:i + n])
+                    ), -1)
+                if start < 1 or not all(p.isdigit() for p in parts[start:start + n]):
+                    continue
+                name_prefix = "-".join(parts[:start]) + "-"
+                suffix = ("-" + "-".join(parts[start + n:])) if len(parts) > start + n else ""
+                if (name_prefix, suffix) not in tried:
+                    tried.add((name_prefix, suffix))
+                    mutated_url = f"{clean_url}/{name_prefix}{ver_slug}{suffix}-release/"
+                    html = http_client.get_html(mutated_url)
+                    if html and "404 Whoops" not in html and "Page Not Found" not in html and ("downloadButton" in html or "table-row" in html):
+                        return mutated_url
 
         # Strategy 3: Category & Query Search
         if app_slug:

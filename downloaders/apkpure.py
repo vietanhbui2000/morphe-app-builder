@@ -39,21 +39,9 @@ class APKPureDownloader(BaseDownloader):
             return []
 
         versions = []
-        if HAS_BS4:
-            soup = BeautifulSoup(html, "html.parser")
-            for tag in soup.select("div.ver-top a, ul.ver-wrap li a"):
-                ver_text = tag.get_text(strip=True)
-                match = re.search(r"(\d+(\.\d+)+)", ver_text)
-                if match:
-                    v = match.group(1)
-                    if v not in versions:
-                        versions.append(v)
-        else:
-            matches = re.findall(r'/version/(\d+(\.\d+)+)', html)
-            for m in matches:
-                v = m[0]
-                if v not in versions:
-                    versions.append(v)
+        for v in re.findall(r'data-dt-version="([^"]+)"', html):
+            if v not in versions:
+                versions.append(v)
 
         return versions
 
@@ -70,30 +58,36 @@ class APKPureDownloader(BaseDownloader):
         if clean_url.endswith("/versions") or clean_url.endswith("/download"):
             clean_url = clean_url.rsplit("/", 1)[0]
 
-        dl_page_url = f"{clean_url}/{version}" if version else f"{clean_url}/download"
+        dl_page_url = f"{clean_url}/download/{version}" if version else f"{clean_url}/download"
         log_info(f"[APKPure] Fetching download page {dl_page_url}...", indent=2)
 
         html = http_client.get_html(dl_page_url)
         if not html:
             return None
 
+        # Missing versions render an error page (or the latest version) with status 200, so check the title
+        title_m = re.search(r"<title>([^<]*)</title>", html, re.IGNORECASE)
+        title = title_m.group(1) if title_m else ""
+        if version and version not in title:
+            log_warn(f"[APKPure] Version {version} page not found (got \"{title.strip()[:80]}\")", indent=2)
+            return None
+
         dl_url = None
         if HAS_BS4:
             soup = BeautifulSoup(html, "html.parser")
-            dl_btn = soup.select_one("a#download_link") or soup.select_one("a.download_btn")
+            dl_btn = soup.select_one("a#download_link")
             if dl_btn and dl_btn.get("href"):
                 dl_url = dl_btn["href"]
 
         if not dl_url:
-            match = re.search(r'href="(https://[^"]*apkpure[^"]*download[^"]*)"', html)
-            dl_url = match.group(1) if match else None
+            match = re.search(r'href="(https://d\.apkpure\.com/b/(?:XAPK|APK)/[^"]+)"', html)
+            dl_url = match.group(1).replace("&amp;", "&") if match else None
 
-        if not dl_url:
+        if not dl_url or "d.apkpure.com/b/" not in dl_url:
             log_warn("[APKPure] Could not resolve download link", indent=2)
             return None
 
-        is_bundle = "xapk" in dl_url.lower() or "xapk" in html.lower()
-        ext = ".xapk" if is_bundle else ".apk"
+        ext = ".xapk" if "/b/XAPK/" in dl_url else ".apk"
         dest_path = output_path.parent / f"{output_path.name}{ext}"
 
         log_info(f"[APKPure] Downloading payload to {dest_path.name}...", indent=2)

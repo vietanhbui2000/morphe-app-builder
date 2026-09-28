@@ -89,7 +89,7 @@ class IADownloader(BaseDownloader):
 
         if not matched_file:
             for link in file_links:
-                if version in link and (link.endswith(".apk") or link.endswith(".apkm")):
+                if f"-{version}-" in link and (link.endswith(".apk") or link.endswith(".apkm")):
                     matched_file = link
                     break
 
