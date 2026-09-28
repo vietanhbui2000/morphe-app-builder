@@ -13,7 +13,6 @@ id = "com.google.android.youtube"
 version = "auto"
 arch = ["universal"]
 apkmirror_url = "https://www.apkmirror.com/apk/google-inc/youtube/"
-uptodown_url = "https://youtube.en.uptodown.com/android"
 apkpure_url = "https://apkpure.com/youtube-app/com.google.android.youtube"
 ia_url = "https://archive.org/download/jhc-apks/apks/com.google.android.youtube"
 excluded_patches = [
@@ -28,7 +27,6 @@ id = "com.google.android.apps.youtube.music"
 version = "auto"
 arch = ["arm64-v8a", "armeabi-v7a"]
 apkmirror_url = "https://www.apkmirror.com/apk/google-inc/youtube-music/"
-uptodown_url = "https://youtube-music.en.uptodown.com/android"
 apkpure_url = "https://apkpure.com/youtube-music/com.google.android.apps.youtube.music"
 ia_url = "https://archive.org/download/jhc-apks/apks/com.google.android.apps.youtube.music"
 excluded_patches = [
@@ -43,7 +41,6 @@ id = "tv.twitch.android.app"
 version = "auto"
 arch = ["universal"]
 apkmirror_url = "https://www.apkmirror.com/apk/twitch-interactive-inc/twitch/"
-uptodown_url = "https://twitch.en.uptodown.com/android"
 apkpure_url = "https://apkpure.com/twitch-livestream-multiplayer-games-esports-app/tv.twitch.android.app"
 patches_source = "arandomhooman/hoomans-morphe-patches"
 
@@ -53,7 +50,6 @@ id = "com.zhiliaoapp.musically"
 version = "auto"
 arch = ["universal"]
 apkmirror_url = "https://www.apkmirror.com/apk/tiktok-pte-ltd/tik-tok-including-musical-ly/"
-uptodown_url = "https://tiktok.en.uptodown.com/android"
 apkpure_url = "https://apkpure.com/tiktok-app/com.zhiliaoapp.musically"
 patches_source = "icysymmetra/tiktok-patches-for-morphe"
 
@@ -63,7 +59,6 @@ id = "com.cloudflare.onedotonedotonedotone"
 version = "auto"
 arch = ["universal"]
 apkmirror_url = "https://www.apkmirror.com/apk/cloudflare/1-1-1-1-faster-safer-internet/"
-uptodown_url = "https://1-1-1-1.en.uptodown.com/android"
 patches_source = "rushiranpise/morphe-patches"
 
 [Proton-VPN]
@@ -72,7 +67,6 @@ id = "ch.protonvpn.android"
 version = "auto"
 arch = ["universal"]
 apkmirror_url = "https://www.apkmirror.com/apk/proton-technologies-ag/protonvpn-secure-and-free-vpn/"
-uptodown_url = "https://protonvpn.en.uptodown.com/android"
 patches_source = "hoo-dles/morphe-patches"
 
 [Projectivy-Launcher]
@@ -81,6 +75,5 @@ id = "com.spocky.projengmenu"
 version = "auto"
 arch = ["universal"]
 apkmirror_url = "https://www.apkmirror.com/apk/spocky/projectivy-launcher-android-tv/"
-uptodown_url = "https://projectivy-launcher.en.uptodown.com/android"
 apkpure_url = "https://apkpure.com/projectivy-launcher/com.spocky.projengmenu"
 patches_source = "Entree3k/Morning-Entree-Patches"

@@ -78,7 +78,6 @@ def load_config(config_path: Path) -> Tuple[GeneralConfig, list[AppConfig]]:
 
         # URLs & Sources
         apkmirror_url = section_data.get("apkmirror_url")
-        uptodown_url = section_data.get("uptodown_url")
         apkpure_url = section_data.get("apkpure_url")
         ia_url = section_data.get("ia_url")
         direct_url = section_data.get("direct_url")
@@ -106,7 +105,6 @@ def load_config(config_path: Path) -> Tuple[GeneralConfig, list[AppConfig]]:
             arch=arch,
             dpi=str(dpi),
             apkmirror_url=apkmirror_url,
-            uptodown_url=uptodown_url,
             apkpure_url=apkpure_url,
             ia_url=ia_url,
             direct_url=direct_url,

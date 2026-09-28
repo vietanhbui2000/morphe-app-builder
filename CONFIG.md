@@ -12,7 +12,6 @@ Adding an app is as simple as defining its section, package name, and at least o
 [Twitch]
 id = "tv.twitch.android.app"
 apkmirror_url = "https://www.apkmirror.com/apk/twitch-interactive-inc/twitch/"
-uptodown_url = "https://twitch.en.uptodown.com/android"
 patches_source = "arandomhooman/hoomans-morphe-patches"
 included_patches = [
   "7TV and BTTV emotes",
@@ -71,7 +70,6 @@ The builder attempts downloaders in priority order based on which URLs are provi
 | Key | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
 | `apkmirror_url` | `string` | `""` | APKMirror category/app URL. Automatically handles bundle merging and Cloudflare challenges. |
-| `uptodown_url` | `string` | `""` | Uptodown app URL. Scrapes version history and resolves direct CDN links. |
 | `apkpure_url` | `string` | `""` | APKPure app URL. Downloads APK or `.xapk` bundles. |
 | `ia_url` | `string` | `""` | Internet Archive directory URL containing pre-uploaded stock APKs. |
 | `direct_url` | `string` | `""` | Direct download URL. Supports `{version}` and `{arch}` template variables. |
@@ -137,7 +135,6 @@ id = "com.google.android.youtube"
 version = "auto"
 arch = ["universal"]
 apkmirror_url = "https://www.apkmirror.com/apk/google-inc/youtube/"
-uptodown_url = "https://youtube.en.uptodown.com/android"
 apkpure_url = "https://apkpure.com/youtube-app/com.google.android.youtube"
 ia_url = "https://archive.org/download/jhc-apks/apks/com.google.android.youtube"
 cli_source = "MorpheApp/morphe-cli"

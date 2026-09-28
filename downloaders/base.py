@@ -11,7 +11,7 @@ class BaseDownloader(ABC):
     @property
     @abstractmethod
     def name(self) -> str:
-        """Provider short slug (e.g. apkmirror, uptodown, etc.)"""
+        """Provider short slug (e.g. apkmirror, apkpure, etc.)"""
         pass
 
     @property

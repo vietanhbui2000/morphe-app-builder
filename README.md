@@ -11,7 +11,7 @@ Built with a modular Python 3 engine, resilient multi-source downloaders (with t
 - Supports all official and community Morphe `.mpp` patch bundles.
 - Builds standalone, signed non-root APKs optimized for size via architecture stripping.
 - Resolves compatible stock APK versions automatically from patch bundles.
-- Fallback downloader chain: APKMirror (with FlareSolverr), Uptodown, APKPure, Internet Archive, and Direct URLs.
+- Fallback downloader chain: APKMirror (with FlareSolverr), APKPure, Internet Archive, and Direct URLs.
 - Automated daily CI/CD builds with GitHub Releases publishing and changelog tracking.
 - Fully declarative configuration in `config.toml` with inline patch options.
 
@@ -109,7 +109,6 @@ id = "com.google.android.youtube"
 version = "auto"                         # "auto" (supports all patches), "latest", "beta", or pinned (e.g. "21.34.243")
 arch = ["universal"]                     # ["universal"] for universal APK, or ["arm64-v8a", "armeabi-v7a"] for split APKs
 apkmirror_url = "https://www.apkmirror.com/apk/google-inc/youtube/"
-uptodown_url = "https://youtube.en.uptodown.com/android"
 apkpure_url = "https://apkpure.com/youtube-app/com.google.android.youtube"
 ia_url = "https://archive.org/download/jhc-apks/apks/com.google.android.youtube"
 included_patches = [
@@ -157,7 +156,6 @@ morphe-app-builder/
 │   ├── __init__.py             # Downloader registry & fallback dispatcher
 │   ├── base.py                 # Abstract BaseDownloader interface
 │   ├── apkmirror.py            # APKMirror scraper (bundles & APKs, DPI/arch matching)
-│   ├── uptodown.py             # Uptodown scraper (versions API & downloads)
 │   ├── apkpure.py              # APKPure downloader
 │   ├── ia.py                   # Internet Archive downloader (ia_url)
 │   └── direct.py               # Direct URL template downloader
