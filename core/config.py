@@ -77,8 +77,6 @@ def load_config(config_path: Path) -> Tuple[GeneralConfig, list[AppConfig]]:
         dpi = section_data.get("dpi", "")
 
         # URLs & Sources
-        aurorastore = section_data.get("aurorastore", False)
-        aurorastore_url = section_data.get("aurorastore_url")
         apkmirror_url = section_data.get("apkmirror_url")
         uptodown_url = section_data.get("uptodown_url")
         apkpure_url = section_data.get("apkpure_url")
@@ -107,8 +105,6 @@ def load_config(config_path: Path) -> Tuple[GeneralConfig, list[AppConfig]]:
             version=str(version),
             arch=arch,
             dpi=str(dpi),
-            aurorastore=bool(aurorastore),
-            aurorastore_url=aurorastore_url,
             apkmirror_url=apkmirror_url,
             uptodown_url=uptodown_url,
             apkpure_url=apkpure_url,

@@ -6,7 +6,6 @@ Registry and dispatcher for modular downloaders.
 from typing import List, Tuple
 from core.models import AppConfig
 from downloaders.base import BaseDownloader
-from downloaders.aurorastore import AuroraStoreDownloader
 from downloaders.apkmirror import APKMirrorDownloader
 from downloaders.uptodown import UptodownDownloader
 from downloaders.apkpure import APKPureDownloader
@@ -14,7 +13,6 @@ from downloaders.ia import IADownloader
 from downloaders.direct import DirectDownloader
 
 DOWNLOADERS = {
-    "aurorastore": AuroraStoreDownloader(),
     "apkmirror": APKMirrorDownloader(),
     "uptodown": UptodownDownloader(),
     "apkpure": APKPureDownloader(),
@@ -26,9 +24,6 @@ def get_download_sources_for_app(app: AppConfig) -> List[Tuple[str, BaseDownload
     """Return ordered list of (display_name, downloader_instance, source_url) configured for this app."""
     sources: List[Tuple[str, BaseDownloader, str]] = []
 
-    if app.aurorastore or app.aurorastore_url:
-        dl = DOWNLOADERS["aurorastore"]
-        sources.append((dl.display_name, dl, app.aurorastore_url or "https://auroraoss.com/api/auth"))
     if app.apkmirror_url:
         dl = DOWNLOADERS["apkmirror"]
         sources.append((dl.display_name, dl, app.apkmirror_url))

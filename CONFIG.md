@@ -70,8 +70,6 @@ The builder attempts downloaders in priority order based on which URLs are provi
 
 | Key | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `aurorastore` | `boolean` | `false` | Primary provider. Downloads directly from Google Play via Aurora Store anonymous token dispenser. |
-| `aurorastore_url` | `string` | `""` | Custom Aurora Store token dispenser URL (defaults to `https://auroraoss.com/api/auth`). |
 | `apkmirror_url` | `string` | `""` | APKMirror category/app URL. Automatically handles bundle merging and Cloudflare challenges. |
 | `uptodown_url` | `string` | `""` | Uptodown app URL. Scrapes version history and resolves direct CDN links. |
 | `apkpure_url` | `string` | `""` | APKPure app URL. Downloads APK or `.xapk` bundles. |

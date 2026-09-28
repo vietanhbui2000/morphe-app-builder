@@ -11,7 +11,7 @@ Built with a modular Python 3 engine, resilient multi-source downloaders (with t
 - Supports all official and community Morphe `.mpp` patch bundles.
 - Builds standalone, signed non-root APKs optimized for size via architecture stripping.
 - Resolves compatible stock APK versions automatically from patch bundles.
-- Fallback downloader chain: Aurora Store, APKMirror (with FlareSolverr), Uptodown, APKPure, Internet Archive, and Direct URLs.
+- Fallback downloader chain: APKMirror (with FlareSolverr), Uptodown, APKPure, Internet Archive, and Direct URLs.
 - Automated daily CI/CD builds with GitHub Releases publishing and changelog tracking.
 - Fully declarative configuration in `config.toml` with inline patch options.
 
@@ -133,7 +133,7 @@ morphe-app-builder/
 ├── CONFIG.md                   # Detailed configuration reference and schema
 ├── keystore.keystore           # Release signing keystore (alias: vietanhbui2000)
 ├── KEYSTORE.md                 # Keystore management, PKCS12 format & signing guide
-├── requirements.txt            # Python dependencies (requests, beautifulsoup4, protobuf)
+├── requirements.txt            # Python dependencies (requests, beautifulsoup4)
 ├── build.py                    # Main CLI orchestrator (download, patch, RELEASE.md generation)
 │
 ├── .github/                    # CI/CD automation
@@ -156,8 +156,6 @@ morphe-app-builder/
 ├── downloaders/                # Downloader provider implementations (by fallback priority)
 │   ├── __init__.py             # Downloader registry & fallback dispatcher
 │   ├── base.py                 # Abstract BaseDownloader interface
-│   ├── aurorastore.py          # Aurora Store / Google Play downloader
-│   ├── aurorastore_pb2.py      # Protobuf definitions for Google Play checkin
 │   ├── apkmirror.py            # APKMirror scraper (bundles & APKs, DPI/arch matching)
 │   ├── uptodown.py             # Uptodown scraper (versions API & downloads)
 │   ├── apkpure.py              # APKPure downloader
@@ -177,9 +175,8 @@ morphe-app-builder/
 
 - **[Morphe](https://github.com/MorpheApp)**: For the Morphe CLI, patch framework, and ecosystem.
 - **[j-hc/revanced-magisk-module](https://github.com/j-hc/revanced-magisk-module)** by [j-hc](https://github.com/j-hc): Original concepts for automated APK downloading and CI automation.
-- **[Revanced-And-Revanced-Extended-Non-Root](https://github.com/FiorenMas/Revanced-And-Revanced-Extended-Non-Root)** by [FiorenMas](https://github.com/FiorenMas): For FlareSolverr scraping and Aurora Store integration concepts.
+- **[Revanced-And-Revanced-Extended-Non-Root](https://github.com/FiorenMas/Revanced-And-Revanced-Extended-Non-Root)** by [FiorenMas](https://github.com/FiorenMas): For FlareSolverr scraping concepts.
 - **[REAndroid/APKEditor](https://github.com/REAndroid/APKEditor)**: For the split APK merging utility.
-- **[AuroraStore](https://gitlab.com/AuroraOSS/AuroraStore)**: For the Google Play token dispenser and checkin protocols.
 - **Patch Developers**: For maintaining the patches across various applications.
 
 ---

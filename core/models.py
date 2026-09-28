@@ -27,8 +27,6 @@ class AppConfig:
     version: str = "auto"
     arch: list[str] = field(default_factory=lambda: ["universal"])
     dpi: str = ""
-    aurorastore: bool = False
-    aurorastore_url: Optional[str] = None
     apkmirror_url: Optional[str] = None
     uptodown_url: Optional[str] = None
     apkpure_url: Optional[str] = None

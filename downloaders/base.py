@@ -17,7 +17,7 @@ class BaseDownloader(ABC):
     @property
     @abstractmethod
     def display_name(self) -> str:
-        """Provider human-readable display name (e.g. APKMirror, AuroraStore, etc.)"""
+        """Provider human-readable display name (e.g. APKMirror, APKPure, etc.)"""
         pass
 
     @abstractmethod
