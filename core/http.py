@@ -202,6 +202,9 @@ class HttpClient:
                             log_warn(f"Download HTTP {r.status_code} for: {url}", indent=2)
                             time.sleep(2)
                             continue
+                        if r.headers.get("Content-Type", "").startswith("text/html"):
+                            log_warn(f"Download returned an HTML page instead of a file: {url}", indent=2)
+                            return False
 
                         with open(tmp_path, "wb") as f:
                             for chunk in r.iter_content(chunk_size=65536):
@@ -214,6 +217,9 @@ class HttpClient:
                             log_warn(f"Download HTTP {resp.status} for: {url}", indent=2)
                             time.sleep(2)
                             continue
+                        if resp.headers.get("Content-Type", "").startswith("text/html"):
+                            log_warn(f"Download returned an HTML page instead of a file: {url}", indent=2)
+                            return False
                         with open(tmp_path, "wb") as f:
                             while True:
                                 chunk = resp.read(65536)
