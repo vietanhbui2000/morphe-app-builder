@@ -4,7 +4,7 @@ YouTube: v21.20.405 [`MorpheApp/morphe-patches`] [↓](https://github.com/vietan
 YouTube-Music: v9.20.53 [`MorpheApp/morphe-patches`] (arm64-v8a) [↓](https://github.com/vietanhbui2000/morphe-app-builder/releases/download/261012080336/YouTube-Music_v9.20.53_arm64-v8a.apk); (armeabi-v7a) [↓](https://github.com/vietanhbui2000/morphe-app-builder/releases/download/261012080336/YouTube-Music_v9.20.53_armeabi-v7a.apk)  
 Twitch: v30.7.2 [`arandomhooman/hoomans-morphe-patches`] [↓](https://github.com/vietanhbui2000/morphe-app-builder/releases/download/261006090649/Twitch_v30.7.2.apk)  
 TikTok: v46.2.3 [`icysymmetra/tiktok-patches-for-morphe`] [↓](https://github.com/vietanhbui2000/morphe-app-builder/releases/download/261006090649/TikTok_v46.2.3.apk)  
-1.1.1.1: v6.38.9 [`rushiranpise/morphe-patches`] [↓](https://github.com/vietanhbui2000/morphe-app-builder/releases/download/261006090649/1.1.1.1_v6.38.9.apk)  
+1.1.1.1: v6.38.9 [`rushiranpise/morphe-patches`] [↓](https://github.com/vietanhbui2000/morphe-app-builder/releases/download/261015071903/1.1.1.1_v6.38.9.apk)  
 Proton-VPN: v5.20.57.0 [`hoo-dles/morphe-patches`] [↓](https://github.com/vietanhbui2000/morphe-app-builder/releases/download/261006090649/Proton-VPN_v5.20.57.0.apk)  
 Projectivy-Launcher: v4.71 [`Entree3k/Morning-Entree-Patches`] [↓](https://github.com/vietanhbui2000/morphe-app-builder/releases/download/261006090649/Projectivy-Launcher_v4.71.apk)  
 
@@ -16,6 +16,6 @@ MorpheApp/morphe-cli: [v1.18.1](https://github.com/MorpheApp/morphe-cli/releases
 MorpheApp/morphe-patches: [v1.47.0](https://github.com/MorpheApp/morphe-patches/releases/tag/v1.47.0)  
 arandomhooman/hoomans-morphe-patches: [v1.53.0](https://github.com/arandomhooman/hoomans-morphe-patches/releases/tag/v1.53.0)  
 icysymmetra/tiktok-patches-for-morphe: [v0.8.0](https://github.com/icysymmetra/tiktok-patches-for-morphe/releases/tag/v0.8.0)  
-rushiranpise/morphe-patches: [v1.22.0](https://github.com/rushiranpise/morphe-patches/releases/tag/v1.22.0)  
+rushiranpise/morphe-patches: [v1.23.0](https://github.com/rushiranpise/morphe-patches/releases/tag/v1.23.0)  
 hoo-dles/morphe-patches: [v1.47.0](https://github.com/hoo-dles/morphe-patches/releases/tag/v1.47.0)  
 Entree3k/Morning-Entree-Patches: [v1.22.0](https://github.com/Entree3k/Morning-Entree-Patches/releases/tag/v1.22.0)  
